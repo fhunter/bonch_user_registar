@@ -1,0 +1,57 @@
+body {
+background: #f3f2f3;
+color: #000000;
+font-family: Trebuchet MS, Arial, Times New Roman;
+font-size: 12px;
+}
+
+#container {
+background: #FF00FF;
+margin: 30px auto;
+width: 900px;
+height: 1000px;
+}
+
+#header {
+background: #838283;
+height: 50px;
+width: 900px;
+}
+
+h1 {
+color: red;
+}
+
+#input_form {
+background: #838333;
+float: left;
+width: 400px;
+height: 600px;
+}
+
+#check_results {
+background: #d2d0d2;
+float: right;
+width: 500px;
+height: 600px;
+}
+
+#field_container {
+height: 40px;
+width: 400px;
+margin: 2px auto;
+background: #338383;
+}
+
+#field_name {
+float: left;
+background: green;
+width: 100px;
+}
+
+#field_value {
+background: blue;
+float: right;
+width: 300px;
+}
+

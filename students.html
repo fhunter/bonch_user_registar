@@ -1,0 +1,94 @@
+<html>
+  <head>
+    <meta charset=utf8>
+    <link rel="stylesheet" type="text/css" href="style.css" />
+    <title>
+      Форма саморегистрации студентов
+    </title>
+  </head>
+  <body>
+    <script type="text/javascript" src="users.js">
+    </script>
+    <div id=container>
+      <div id=header>
+	<h1>Саморегистрация студентов</h1>
+      </div>
+      <div id=input_form>
+	<form name="userreg" action="javascript:submit_user()">
+	  <div class="field_container">
+	    <div class="field_name">
+	      Фамилия:
+	    </div>
+	    <div class="field_value">
+	      <input type="text" name="last_name" onChange="check_validity()">
+	    </div>
+	  </div>
+	  <div class="field_container">
+	    <div class="field_name">
+	      Имя:
+	    </div>
+	    <div class="field_value">
+	      <input type="text" name="first_name" onChange="check_validity()">
+	    </div>
+	  </div>
+	  <div class="field_container">
+	    <div class="field_name">
+	      Отчество:
+	    </div>
+	    <div class="field_value">
+	      <input type="text" name="patronimic" onChange="check_validity()">
+	    </div>
+	  </div>
+	  <div class="field_container">
+	    <div class="field_name">
+	      Номер студенческого билета:
+	    </div>
+	  </div>
+	  <div class="field_value">
+	    <input type="text" name="studentnumber" onChange="check_validity()">
+	  </div>
+	  <div class="field_container">
+	    <div class="field_name">
+	      Группа пользователя:
+	    </div>
+	    <div class="field_value">
+	      <select name="groupselector" onChange="check_validity()">
+		<script type="text/javascript" >
+			var jsonHttp = null;
+			jsonHttp = new XMLHttpRequest();
+			jsonHttp.open( "GET", "ui.cgi?query=groups", false );
+			jsonHttp.send( null );
+			document.write(jsonHttp.responseText);
+		</script>
+		</select>
+	      </div>
+	    </div>
+	    <div class="field_container">
+	      <div class="field_name">
+		Имя пользователя:
+	      </div>
+	      <div class="field_value">
+		<input type="text" name="username" onChange="check_validity()">
+	      </div>
+	    </div>
+	    <div class="field_container">
+	      <div class="field_name">
+		Начальный пароль:
+	      </div>
+	      <div class="field_value">
+		<input type="text" name="initialpassword">
+	      </div>
+	    </div>
+	    <div class="field_container">
+	      <div class="field_value">
+		<input type="submit" value="Получить пользователя">
+	      </div>
+	    </div>
+	  </form>
+	</div>
+	<div id=check_results>
+	</div>
+      </div>
+    </body>
+  </html>
+
