@@ -2,9 +2,24 @@ var valid_data=false;
 function submit_user() {
 	check_validity();
 }
+
+function toLatin(str) {
+	//Transliterates string to lowercase latin
+	return str.toLowerCase();
+}
+
 function generate_username() {
 	//Generates username from familyname and name
 	//Generates password
+	var last_name = document.getElementsByName( "last_name")[0].value.trim();
+	var first_name = document.getElementsByName( "first_name")[0].value.trim();
+	var patronimic = document.getElementsByName( "patronimic")[0].value.trim();
+	var username = "";
+	var password = "";
+	username = toLatin(last_name) + toLatin(first_name).charAt(0) + toLatin(patronimic).charAt(0);
+	password = "blah";
+	document.getElementsByName( "username" )[0].value = username;
+	document.getElementsByName( "initialpassword" )[0].value = password;
 }
 function check_validity() {
 	var local_valid = true;
@@ -21,38 +36,17 @@ function check_validity() {
 	elements.push(new Array("username","имя пользователя"));
 	elements.push(new Array("initialpassword","начальный пароль"));
 	for(i=0;i<elements.length;i++){
-		//Проверка фамилии на пустоту
-		if(document.getElementsByName( elements[i][0] )[0].value == ""){
+		//Проверка полей на пустоту
+		if(document.getElementsByName( elements[i][0] )[0].value.trim() == ""){
 			text += preamble + fail + "Пустое поле " + elements[i][1] + post;
 			local_valid = false;
 		}else{
 			text += preamble +   ok + elements[i][1] + post;
 		}
-//		if(document.getElementsByName( "first_name")[0].value == ""){
-//			text += "Empty first name";
-//			local_valid = false;
-//		}
-//		if(document.getElementsByName( "studentnumber")[0].value == ""){
-//			text += "Empty student number";
-//			local_valid = false;
-//		}
-//		if(document.getElementsByName( "studentnumber")[0].value == ""){
-//			text += "Not a number";
-//			local_valid = false;
-//		}
-//		if(document.getElementsByName( "username")[0].value == ""){
-//			text += "Empty username";
-//			local_valid = false;
-//		}
-//		if(document.getElementsByName( "username")[0].value == ""){
-//			text += "Invalid username. ";
-//			local_valid = false;
-//		}
-//		if(document.getElementsByName( "initialpassword")[0].value == ""){
-//			text += "Empty initial password. ";
-//			local_valid = false;
-//		}
 	}
+	//Добавить проверку поля username на повторяемость
+	//Добавить проверку поля номер студбилета на число
+	//Добавить проверку поля номер студбилета на дублируемость
 	document.getElementById("check_results").innerHTML = text;
 
 	valid_data = local_valid;
