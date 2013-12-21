@@ -13,7 +13,7 @@ function toLatin(str) {
 	A["в"]="v";A["а"]="a";A["п"]="p";A["р"]="r";A["о"]="o";
 	A["л"]="l";A["д"]="d";A["ж"]="zh";A["э"]="e";A["я"]="ya";
 	A["ч"]="ch";A["с"]="s";A["м"]="m";A["и"]="i";A["т"]="t";
-	A["ь"]="_";A["б"]="b";A["ю"]="yu";
+	A["ь"]="_";A["б"]="b";A["ю"]="yu";A[" "]="";
 	
 	for(i = 0; i < str.toLowerCase().length; i++) {
 		c = str.toLowerCase().charAt(i);
