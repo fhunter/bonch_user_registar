@@ -9,8 +9,8 @@ function generate_username() {
 function check_validity() {
 	var local_valid = true;
 	var text = "";
-	var fail = '<img src="fail.svg" />';
-	var ok = '<img src="ok.svg" />';
+	var fail = '<img src="fail.png" />';
+	var ok = '<img src="ok.png" />';
 	var preamble = "<div class=\"field_container\">";
 	var post = "</div>";
 	var elements = new Array();
