@@ -20,7 +20,7 @@
 	      Фамилия:
 	    </div>
 	    <div class="field_value">
-	      <input type="text" name="last_name" onChange="check_validity()">
+	      <input type="text" name="last_name" onChange="generate_username();check_validity()">
 	    </div>
 	  </div>
 	  <div class="field_container">
@@ -28,7 +28,7 @@
 	      Имя:
 	    </div>
 	    <div class="field_value">
-	      <input type="text" name="first_name" onChange="check_validity()">
+	      <input type="text" name="first_name" onChange="generate_username();check_validity()">
 	    </div>
 	  </div>
 	  <div class="field_container">
@@ -36,7 +36,7 @@
 	      Отчество:
 	    </div>
 	    <div class="field_value">
-	      <input type="text" name="patronimic" onChange="check_validity()">
+	      <input type="text" name="patronimic" onChange="generate_username();check_validity()">
 	    </div>
 	  </div>
 	  <div class="field_container">
@@ -76,7 +76,7 @@
 		Начальный пароль:
 	      </div>
 	      <div class="field_value">
-		<input type="text" name="initialpassword">
+		<input type="text" name="initialpassword" onChange="check_validity()">
 	      </div>
 	    </div>
 	    <div class="field_container">

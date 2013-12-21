@@ -2,22 +2,26 @@ var valid_data=false;
 function submit_user() {
 	check_validity();
 }
+function generate_username() {
+	//Generates username from familyname and name
+	//Generates password
+}
 function check_validity() {
 	var local_valid = true;
 	var text = "";
 	var fail = '<img src="fail.svg" />';
 	var ok = '<img src="ok.svg" />';
-	var preamble = "";
-	var post = "";
+	var preamble = "<div class=\"field_container\">";
+	var post = "</div>";
 	var elements = new Array();
-	elements.push(new Array("last_name","Фамилия"));
-	elements.push(new Array("first_name","Имя"));
-	elements.push(new Array("patronimic","Отчество"));
-	elements.push(new Array("studentnumber","Номер студенческого билета"));
+	elements.push(new Array("last_name","фамилия"));
+	elements.push(new Array("first_name","имя"));
+	elements.push(new Array("patronimic","отчество"));
+	elements.push(new Array("studentnumber","номер студенческого билета"));
 	elements.push(new Array("username","имя пользователя"));
-	elements.push(new Array("initial_password","начальный пароль"));
+	elements.push(new Array("initialpassword","начальный пароль"));
 	for(i=0;i<elements.length;i++){
-		//Проверка фамилии на пустоту 
+		//Проверка фамилии на пустоту
 		if(document.getElementsByName( elements[i][0] )[0].value == ""){
 			text += preamble + fail + "Пустое поле " + elements[i][1] + post;
 			local_valid = false;
