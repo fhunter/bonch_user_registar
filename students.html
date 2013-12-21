@@ -56,7 +56,7 @@
 		<script type="text/javascript" >
 			var jsonHttp = null;
 			jsonHttp = new XMLHttpRequest();
-			jsonHttp.open( "GET", "ui.cgi?query=groups", false );
+			jsonHttp.open( "GET", "ui.py?query=groups", false );
 			jsonHttp.send( null );
 			document.write(jsonHttp.responseText);
 		</script>
