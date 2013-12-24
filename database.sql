@@ -1,8 +1,9 @@
 PRAGMA foreign_keys=OFF;
 BEGIN TRANSACTION;
 CREATE TABLE users (id auto primary key, username text unique, fio text unique);
+INSERT INTO "users" VALUES(1,'fhunter1','test');
 CREATE TABLE groups (id auto primary key, groupname text unique, info text);
-INSERT INTO "groups" VALUES(NULL,'a01v','a01v');
+INSERT INTO "groups" VALUES(NULL,'a01v','А01В');
 INSERT INTO "groups" VALUES(NULL,'a71v','a71v');
 INSERT INTO "groups" VALUES(NULL,'a71z','a71z');
 INSERT INTO "groups" VALUES(NULL,'a76','a76');
