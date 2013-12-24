@@ -14,7 +14,7 @@ function toLatin(str) {
 	A["л"]="l";A["д"]="d";A["ж"]="zh";A["э"]="e";A["я"]="ya";
 	A["ч"]="ch";A["с"]="s";A["м"]="m";A["и"]="i";A["т"]="t";
 	A["ь"]="_";A["б"]="b";A["ю"]="yu";A[" "]="_";
-	
+
 	for(i = 0; i < str.toLowerCase().length; i++) {
 		c = str.toLowerCase().charAt(i);
 
@@ -67,4 +67,17 @@ function check_validity() {
 	document.getElementById("check_results").innerHTML = text;
 
 	valid_data = local_valid;
+}
+
+function fetch_groups(){
+	var jsonHttp = null;
+	jsonHttp = new XMLHttpRequest();
+	jsonHttp.open( "GET", "ui.py?query=group", false );
+	jsonHttp.send( null );
+	var myobject = JSON.parse(jsonHttp.responseText);
+	var text = "";
+	for(i=0;i<myobject.groups.length;i++){
+		text += "<option value=\"" + myobject.groups[i][0] + "\">" + myobject.groups[i][1] + "</option>";
+	};
+	document.getElementById("groupselectorid").innerHTML = text;
 }

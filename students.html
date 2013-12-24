@@ -5,10 +5,10 @@
     <title>
       Форма саморегистрации студентов
     </title>
-  </head>
-  <body>
     <script type="text/javascript" src="users.js">
     </script>
+  </head>
+  <body onLoad="fetch_groups();" >
     <div id=container>
       <div id=header>
 	<h1>Саморегистрация студентов</h1>
@@ -52,14 +52,7 @@
 	      Группа пользователя:
 	    </div>
 	    <div class="field_value">
-	      <select name="groupselector" onChange="check_validity()">
-		<script type="text/javascript" >
-			var jsonHttp = null;
-			jsonHttp = new XMLHttpRequest();
-			jsonHttp.open( "GET", "ui.py?query=groups", false );
-			jsonHttp.send( null );
-			document.write(jsonHttp.responseText);
-		</script>
+	      <select id="groupselectorid" name="groupselector" onChange="check_validity()">
 		</select>
 	      </div>
 	    </div>
