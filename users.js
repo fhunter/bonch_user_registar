@@ -4,6 +4,7 @@ function submit_user() {
 }
 
 function toLatin(str) {
+	//FIXME: make table validation via whitelist
 	var A = {};
 	var result = '';
 
@@ -28,6 +29,7 @@ function toLatin(str) {
 function generate_username() {
 	//Generates username from familyname and name
 	//Generates password
+	//FIXME: add password generation
 	var last_name = document.getElementsByName( "last_name")[0].value.trim();
 	var first_name = document.getElementsByName( "first_name")[0].value.trim();
 	var patronimic = document.getElementsByName( "patronimic")[0].value.trim();
