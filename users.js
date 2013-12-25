@@ -4,10 +4,11 @@ function submit_user() {
 }
 
 function toLatin(str) {
-	//FIXME: make table validation via whitelist
+	//Transliterates string to lowercase latin
 	var A = {};
+	var whitelist = "abcdefghijklmnopqrstuvwxyzабвгдеёжзийклмнопрстуфхцчшщьыъэюя01234567890_";
 	var result = '';
-
+	
 	A["ё"]="yo";A["й"]="j";A["ц"]="ts";A["у"]="u";A["к"]="k";
 	A["е"]="e";A["н"]="n";A["г"]="g";A["ш"]="sh";A["щ"]="sch";
 	A["з"]="z";A["х"]="h";A["ъ"]="_";A["ф"]="f";A["ы"]="y";
@@ -16,13 +17,27 @@ function toLatin(str) {
 	A["ч"]="ch";A["с"]="s";A["м"]="m";A["и"]="i";A["т"]="t";
 	A["ь"]="_";A["б"]="b";A["ю"]="yu";A[" "]="_";
 
-	for(i = 0; i < str.toLowerCase().length; i++) {
-		c = str.toLowerCase().charAt(i);
-
+	str=str.toLowerCase();
+	for(i = 0; i < str.length; i++) {
+		if(whitelist.indexOf(str.charAt(i))==-1){
+			//Cleanup - replace everything unknown with _
+			str.charAt(i)='_';
+		}
+	}
+	var str1 = str.charAt(0);
+	for(i=1; i < str.length; i++) {
+		//remove duplicate '_'
+		if(!((str.charAt(i-1)=='_') && (str.charAt(i)=='_'))){
+			str1 += str.charAt(i);
+		}
+	}
+	str=str1;
+	for(i = 0; i < str.length; i++) {
+		c = str.charAt(i);
+		//Russian to latin
 		result += A[c] || c;
 	}
 
-	//Transliterates string to lowercase latin
 	return result;
 }
 
@@ -65,6 +80,7 @@ function check_validity() {
 	}
 	//Добавить проверку поля username на повторяемость
 	//Добавить проверку поля номер студбилета на число
+	
 	//Добавить проверку поля номер студбилета на дублируемость
 	document.getElementById("check_results").innerHTML = text;
 
