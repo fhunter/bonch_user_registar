@@ -1,6 +1,18 @@
 var valid_data=false;
 function submit_user() {
+	//FIXME: add sending data to server
 	check_validity();
+}
+
+function isANumber(str) {
+	var result=true;
+	var numbers="0123456789";
+	for(i = 0; i<str.length;i++) {
+		if(numbers.indexOf(str.charAt(i))==-1){
+			result = false;
+		};
+	};
+	return result;
 }
 
 function toLatin(str) {
@@ -18,13 +30,17 @@ function toLatin(str) {
 	A["ь"]="_";A["б"]="b";A["ю"]="yu";A[" "]="_";
 
 	str=str.toLowerCase();
+	var str1 = "";
 	for(i = 0; i < str.length; i++) {
 		if(whitelist.indexOf(str.charAt(i))==-1){
 			//Cleanup - replace everything unknown with _
-			str.charAt(i)='_';
+			str1+= '_';
+		}else{
+			str1+=str.charAt(i);
 		}
 	}
-	var str1 = str.charAt(0);
+	str=str1;
+	str1 = str.charAt(0);
 	for(i=1; i < str.length; i++) {
 		//remove duplicate '_'
 		if(!((str.charAt(i-1)=='_') && (str.charAt(i)=='_'))){
@@ -80,7 +96,10 @@ function check_validity() {
 	}
 	//Добавить проверку поля username на повторяемость
 	//Добавить проверку поля номер студбилета на число
-	
+	if(!isANumber(document.getElementsByName("studentnumber")[0].value.trim())){
+		text += preamble + fail + "Нечисловые данные в поле " + "номер студенческого билета" + post;
+		local_valid = false;
+	}
 	//Добавить проверку поля номер студбилета на дублируемость
 	document.getElementById("check_results").innerHTML = text;
 
