@@ -3,7 +3,7 @@
     <meta charset=utf8>
     <link rel="stylesheet" type="text/css" href="style.css" />
     <title>
-      Административный интерфейс
+      Панель сброса пароля
     </title>
     <script type="text/javascript" src="ui.js">
     </script>
@@ -11,30 +11,31 @@
   <body>
     <div id="container">
       <div id="header">
-	<h1>Административный интерфейс</h1>
+	<h1>Сброс паролей и проверка статуса пользователей</h1>
       </div>
       <div>
-	<button onClick="div_toggle('student_created');">Студенты созданные</button>
-	<button onClick="div_toggle('student_queue');"  >Студенты</button>
-	<button onClick="div_toggle('teachers_queue');" >Преподаватели</button>
-	<button onClick="div_toggle('personal_queue');" >Лаборанты</button>
-	<button onClick="div_toggle('groups_created');" >Группы студентов</button>
+	<button onClick="div_toggle('password_reset');">Сброс пароля</button>
+	<button onClick="div_toggle('user_info');"  >Просмотр пользователей</button>
+	<button onClick="div_toggle('reset_queue');" >Очередь сброса пароля</button>
       </div>
       <div id="UI_elements">
-	<div style="display: inline" id="student_queue" class="UI_tab" >
-	  <h2>Очередь создания пользователей для студентов</h2>
+	<div style="display: inline" id="password_reset" class="UI_tab" >
+	  <h2>Запрос на сброс пароля</h2>
+	<!--
+		Форма для ввода имени пользователя на сброс пароля
+ 	--!>
 	</div>
-	<div style="display: none" id="student_created" class="UI_tab" >
-	  <h2>Пользователи студентов</h2>
+	<div style="display: none" id="user_info" class="UI_tab" >
+	  <h2>Запрос информации о пользователе</h2>
+	<!--
+		Форма для поиска пользователя
+	--!>
 	</div>
-	<div style="display: none" id="teachers_queue" class="UI_tab" >
-	  <h2>Запросы на создание пользователей преподавателями</h2>
-	</div>
-	<div style="display: none" id="personal_queue" class="UI_tab" >
-	  <h2>Запросы на создание пользователей лаборантами</h2>
-	</div>
-	<div style="display: none" id="groups_created" class="UI_tab" >
-	  <h2>Группы студентов</h2>
+	<div style="display: none" id="reset_queue" class="UI_tab" >
+	  <h2>Очередь запросов на сброс пароля</h2>
+	<!--
+		Просто показать информацию из очереди сброса пароля
+	--!>
 	</div>
       </div>
     </div>
