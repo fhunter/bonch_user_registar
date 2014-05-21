@@ -3,43 +3,44 @@ import cgi
 import cgitb
 import sqlite3
 import pwd
+import base64
 import json
 cgitb.enable()
 
-print "Content-type: text/javascript"
-print ""
+def header():
+	print "Content-type: text/javascript"
+	print ""
 
 form = cgi.FieldStorage()
 if "query" not in form:
+  	header()
 	print json.dumps({"error": 1 });
 else:
-	if form["query"].value == "group":
-		conn = sqlite3.connect("database.sqlite3")
-		cursor = conn.cursor()
-		cursor.execute("select groupname, info from groups")
-		js=json.dumps({"error": 0, "groups": cursor.fetchall()})
-		conn.close()
-		print js
-	if form["query"].value == "userfree":
+	if form["query"].value == "getuser":
 		if "username" not in form:
-			js=json.dumps({"error": 1})
+		  	header()
+			print json.dumps({"error": 1 });
 		else:
-			userfree=0
-			try:
-				pwd.getpwnam(form["username"].value)
-			except KeyError:
-				userfree=1
-			if userfree == 0:
-				js=json.dumps({"error": 0, "username": form["username"].value, "userfree": userfree})
-			else:
-				conn = sqlite3.connect("database.sqlite3")
-				cursor = conn.cursor()
-				t = ( form["username"].value, )
-				cursor.execute('select username from users where username=?',t)
-				if cursor.fetchone() == None :
-					userfree  = 1
-				else:
-					userfree  = 0
-				conn.close()
-				js=json.dumps({"error": 0, "username": form["username"].value, "userfree": userfree})
-		print js
+		  	user={}
+			user["quota"]=0
+			user["useddiskspace"] = 0
+			user["username"] = form["username"].value
+			user["fio"] = ""
+			user["studnumber"] = ""
+			js=json.dumps({"error": 0, "username": user})
+			header()
+			print js
+	if form["query"].value == "getphoto":
+	  	print "Content-type: text/html"
+		print ""
+		print "<img src=\"data:image/png;base64,"
+		if "username" not in form:
+			s="""iVBORw0KGgoAAAANSUhEUgAAAGQAAABkAQAAAABYmaj5AAAAAmJLR0QAAd2KE6QAAAAZSURBVDjLY/
+iPBD4wjPJGeaO8Ud4oj8Y8AL7rCVzcsTKLAAAAAElFTkSuQmCC"""
+			print s
+		else:
+			#Fetch photo from table if it exists
+		  	print ""
+		print "\">"
+
+			
