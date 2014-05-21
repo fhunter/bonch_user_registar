@@ -27,6 +27,7 @@ else:
 			user["username"] = form["username"].value
 			user["fio"] = ""
 			user["studnumber"] = ""
+			user["groups"] = []
 			js=json.dumps({"error": 0, "username": user})
 			header()
 			print js
