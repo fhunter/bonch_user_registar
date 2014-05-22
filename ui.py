@@ -3,12 +3,17 @@ import cgi
 import cgitb
 import sqlite3
 import pwd
+import grp
 import base64
 import json
 cgitb.enable()
 
 def header():
 	print "Content-type: text/javascript"
+	print ""
+
+def header_html():
+	print "Content-type: text/html"
 	print ""
 
 form = cgi.FieldStorage()
@@ -22,26 +27,55 @@ else:
 			print json.dumps({"error": 1 });
 		else:
 		  	user={}
-			user["quota"]=0
+			conn = sqlite3.connect("database.sqlite3")
+			cursor = conn.cursor()
+			t = ( form["username"].value, )
+			cursor.execute('select fio,studnum from users where username = ?', t)
+			result=cursor.fetchone()
+			conn.close()
+			
+			passwd = pwd.getpwnam(form["username"].value)
+			user["fio"] = result[0]
+			user["studnumber"] = result[1]
+			user["quota"] = 0
 			user["useddiskspace"] = 0
-			user["username"] = form["username"].value
-			user["fio"] = ""
-			user["studnumber"] = ""
+			user["username"] = passwd[0]
 			user["groups"] = []
-			js=json.dumps({"error": 0, "username": user})
+			for i in grp.getgrall():
+				if user["username"] in i[3]:
+					user["groups"].append(i[0])
+			js=json.dumps({"error": 0, "user": user})
 			header()
 			print js
+			exit(0)
 	if form["query"].value == "getphoto":
-	  	print "Content-type: text/html"
-		print ""
-		print "<img src=\"data:image/png;base64,"
+		begin="<img src=\"data:image/png;base64,"
+		end="\">"
+		empty="""
+			iVBORw0KGgoAAAANSUhEUgAAAGQAAABkAQAAAABYmaj5AAAAAmJLR0QAAd2KE6QAAAAZSURBVDjLY/
+			iPBD4wjPJGeaO8Ud4oj8Y8AL7rCVzcsTKLAAAAAElFTkSuQmCC
+		"""
 		if "username" not in form:
-			s="""iVBORw0KGgoAAAANSUhEUgAAAGQAAABkAQAAAABYmaj5AAAAAmJLR0QAAd2KE6QAAAAZSURBVDjLY/
-iPBD4wjPJGeaO8Ud4oj8Y8AL7rCVzcsTKLAAAAAElFTkSuQmCC"""
-			print s
+			header_html()
+			print begin
+			print empty
+			print end
 		else:
 			#Fetch photo from table if it exists
-		  	print ""
-		print "\">"
+			conn = sqlite3.connect("database.sqlite3")
+			cursor = conn.cursor()
+			t = ( form["username"].value, )
+			cursor.execute('select photo from users where username = ?', t)
+			photo=cursor.fetchone()[0]
+			conn.close()
+			if photo==None:
+				photo=empty
+			header_html()
+			print begin
+			print photo
+			print end
+		exit(0)
+	print header_html()
+	print "<pre>Blah!</pre>"
 
 			
