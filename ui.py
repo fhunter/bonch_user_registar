@@ -27,6 +27,12 @@ else:
 			print json.dumps({"error": 1 });
 		else:
 		  	user={}
+			try:
+				passwd = pwd.getpwnam(form["username"].value)
+			except:
+				header()
+				print json.dumps({"error": 1 })
+				exit(0)
 			conn = sqlite3.connect("database.sqlite3")
 			cursor = conn.cursor()
 			t = ( form["username"].value, )
@@ -34,7 +40,6 @@ else:
 			result=cursor.fetchone()
 			conn.close()
 			
-			passwd = pwd.getpwnam(form["username"].value)
 			user["fio"] = result[0]
 			user["studnumber"] = result[1]
 			user["quota"] = 0
@@ -66,7 +71,11 @@ else:
 			cursor = conn.cursor()
 			t = ( form["username"].value, )
 			cursor.execute('select photo from users where username = ?', t)
-			photo=cursor.fetchone()[0]
+			photo=cursor.fetchone()
+			if photo == None:
+				photo=empty
+			else:
+				photo=photo[0]
 			conn.close()
 			if photo==None:
 				photo=empty
