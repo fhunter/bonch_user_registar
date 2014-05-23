@@ -6,6 +6,7 @@ import pwd
 import grp
 import base64
 import json
+import qrcode
 cgitb.enable()
 
 def header():
@@ -84,7 +85,25 @@ else:
 			print photo
 			print end
 		exit(0)
+	if form["query"].value == "reset":
+		if "username" not in form:
+		  	header()
+			print json.dumps({"error": 1 });
+		else:
+		  	user={}
+			students_gid=grp.getgrnam("students")[2]
+			try:
+				passwd = pwd.getpwnam(form["username"].value)
+			except:
+				header()
+				print json.dumps({"error": 1 })
+				exit(0)
+			header_html()
+			#check that user is a student and generate password and qrcode from it
+			if passwd[3]==students_gid:
+				print "<pre>New password will be set to:</pre>"
+			else:
+				print "<pre>Must be a student!</pre>"
+		exit(0)
 	print header_html()
 	print "<pre>Blah!</pre>"
-
-			
