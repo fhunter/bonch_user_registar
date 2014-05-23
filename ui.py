@@ -7,6 +7,7 @@ import grp
 import base64
 import json
 import qrcode
+import StringIO
 cgitb.enable()
 
 def header():
@@ -101,7 +102,19 @@ else:
 			header_html()
 			#check that user is a student and generate password and qrcode from it
 			if passwd[3]==students_gid:
-				print "<pre>New password will be set to:</pre>"
+			  	password="SoMeWeIrDpAsSwOrD"
+				print "<pre>New password will be set to:"
+				print password
+				print "</pre>"
+				qr = qrcode.QRCode(version=10, error_correction=qrcode.ERROR_CORRECT_L)
+				qr.add_data(password)
+				qr.make()
+				image = qr.make_image()
+				image_file = StringIO.StringIO()
+				image.save(image_file,"PNG")
+				print "<img src=\"data:image/png;base64,"
+				print base64.b64encode(image_file.getvalue())
+				print "\"/>"
 			else:
 				print "<pre>Must be a student!</pre>"
 		exit(0)
