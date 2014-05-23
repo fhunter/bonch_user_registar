@@ -102,7 +102,13 @@ else:
 			header_html()
 			#check that user is a student and generate password and qrcode from it
 			if passwd[3]==students_gid:
-			  	password="SoMeWeIrDpAsSwOrD"
+				password="SoMeWeIrDpAsSwOrD"
+				conn = sqlite3.connect("database.sqlite3")
+				cursor = conn.cursor()
+				t = ( form["username"].value, password )
+				cursor.execute('insert into queue (username, password) values (?, ?)', t)
+				conn.commit()
+				conn.close()
 				print "<pre>New password will be set to:"
 				print password
 				print "</pre>"
