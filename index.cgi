@@ -10,29 +10,38 @@ import qrcode
 import StringIO
 cgitb.enable()
 
-def header():
-	print "Content-type: text/javascript"
-	print ""
+mainpage="""
+<h1>This is a test</h1>
+"""
 
 def header_html():
 	print "Content-type: text/html"
 	print ""
 
+def print_ui(page):
+	print """
+	<html><head></head><body>
+	"""
+	print page
+	print """
+	</body></html>
+	"""
+
 form = cgi.FieldStorage()
 if "query" not in form:
-  	header()
-	print json.dumps({"error": 1 });
+  	header_html()
+	print_ui(mainpage)
 else:
 	if form["query"].value == "getuser":
 		if "username" not in form:
-		  	header()
+		  	header_html()
 			print json.dumps({"error": 1 });
 		else:
 		  	user={}
 			try:
 				passwd = pwd.getpwnam(form["username"].value)
 			except:
-				header()
+				header_html()
 				print json.dumps({"error": 1 })
 				exit(0)
 			conn = sqlite3.connect("database.sqlite3")
@@ -52,7 +61,7 @@ else:
 				if user["username"] in i[3]:
 					user["groups"].append(i[0])
 			js=json.dumps({"error": 0, "user": user})
-			header()
+			header_html()
 			print js
 			exit(0)
 	if form["query"].value == "getphoto":
@@ -88,7 +97,7 @@ else:
 		exit(0)
 	if form["query"].value == "reset":
 		if "username" not in form:
-		  	header()
+		  	header_html()
 			print json.dumps({"error": 1 });
 		else:
 		  	user={}
@@ -96,7 +105,7 @@ else:
 			try:
 				passwd = pwd.getpwnam(form["username"].value)
 			except:
-				header()
+				header_html()
 				print json.dumps({"error": 1 })
 				exit(0)
 			header_html()
