@@ -14,6 +14,11 @@ mainpage="""
 <h1>This is a test</h1>
 """
 
+errorpage="""
+<h1>Error</h1>
+%s
+"""
+
 def header_html():
 	print "Content-type: text/html"
 	print ""
@@ -35,7 +40,8 @@ else:
 	if form["query"].value == "getuser":
 		if "username" not in form:
 		  	header_html()
-			print json.dumps({"error": 1 });
+			print_ui(errorpage % "no user name")
+			exit(0)
 		else:
 		  	user={}
 			try:
