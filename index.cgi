@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# coding=utf-8
 import cgi
 import cgitb
 import sqlite3
@@ -11,7 +12,10 @@ import StringIO
 cgitb.enable()
 
 mainpage="""
-<h1>This is a test</h1>
+<h1>Информация о пользователях и сброс паролей</h1>
+<form>
+Ключ поиска:
+</form>
 """
 
 errorpage="""
