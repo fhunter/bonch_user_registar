@@ -13,8 +13,9 @@ cgitb.enable()
 
 mainpage="""
 <h1>Информация о пользователях и сброс паролей</h1>
-<form>
-Ключ поиска:
+<form method="get" action="./" name="usersearch">
+Ключ поиска:<input type="text" name="searchkey">
+<input type="submit" value="Submit">
 </form>
 """
 
@@ -29,7 +30,7 @@ def header_html():
 
 def print_ui(page):
 	print """
-	<html><head></head><body>
+	<html><meta http-equiv="Content-Type" content="text/html;charset=utf8"><head></head><body>
 	"""
 	print page
 	print """
