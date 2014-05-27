@@ -42,7 +42,7 @@ def print_ui(page):
 	print """
 	<html><meta http-equiv="Content-Type" content="text/html;charset=utf8"><head></head><body>
 	"""
-	print page
+	print page.encode('utf-8')
 	print """
 	</body></html>
 	"""
@@ -104,7 +104,8 @@ if "getuser" in form:
 	userinfo = getuser(form["getuser"].value)
 	photo = getphoto(form["getuser"].value)
 	t= (userinfo["username"], userinfo["fio"], userinfo["studnumber"], userinfo["groups"],photo)
-	print_ui(userinfopage % t)
+	ui = userinfopage.decode('utf-8') % t
+	print_ui(ui)
 	exit(0)
 if "reset" in form:
 	header_html()
