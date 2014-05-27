@@ -9,6 +9,7 @@ import base64
 import json
 import qrcode
 import StringIO
+import gpw
 cgitb.enable()
 
 mainpage="""
@@ -123,7 +124,8 @@ def resetpassword(username):
 		return ""
 	#check that user is a student and generate password and qrcode from it
 	if passwd[3]==students_gid:
-		password="SoMeWeIrDpAsSwOrD"
+		#password="SoMeWeIrDpAsSwOrD"
+		password=gpw.GPW(10).password
 		conn = sqlite3.connect("database.sqlite3")
 		cursor = conn.cursor()
 		t = ( username, password )
@@ -157,7 +159,7 @@ if "reset" in form:
 	header_html()
 	newpassword=resetpassword(form["reset"].value)
 	if newpassword=="":
-		print_ui(errorpage % (form["reset"].value) )
+		print_ui(errorpage.decode('utf-8') % "Пользователь должен быть в группе students" )
 	else:
 		qr = qrcode.QRCode(version=10, error_correction=qrcode.ERROR_CORRECT_L)
 		qr.add_data(newpassword)
