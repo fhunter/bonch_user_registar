@@ -22,8 +22,11 @@ mainpage="""
 
 userinfopage="""
 <h1>Информация о пользователе</h1>
-Имя пользователя: %s
-
+Имя пользователя: %s<br>
+ФИО: %s<br>
+Номер студенческого билета: %s</br>
+Список групп: %s<br>
+Фотография: %s<br>
 """
 
 errorpage="""
@@ -98,8 +101,9 @@ if "searchkey" in form:
 	exit(0)
 if "getuser" in form:
 	header_html()
-	t= getuser(form["getuser"].value)
-
+	userinfo = getuser(form["getuser"].value)
+	photo = getphoto(form["getuser"].value)
+	t= (userinfo["username"], userinfo["fio"], userinfo["studnumber"], userinfo["groups"],photo)
 	print_ui(userinfopage % t)
 	exit(0)
 if "reset" in form:
