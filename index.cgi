@@ -57,6 +57,17 @@ def print_ui(page):
 	</body></html>
 	"""
 
+def findusers(key):
+	userlist = []
+	conn = sqlite3.connect("database.sqlite3")
+	cursor = conn.cursor()
+	key = '%' + key + '%'
+	t = ( key, key, key )
+	cursor.execute("select username,fio,studnum from users where (username like ?) or (fio like ?) or (studnum like ?)", t)
+	result=cursor.fetchall()
+	conn.close()
+	return result 
+
 def getuser(username):
 	user = {}
 	try:
@@ -127,7 +138,12 @@ form = cgi.FieldStorage()
 
 if "searchkey" in form:
 	header_html()
-	print_ui(mainpage.decode('utf-8') % "search results go here")
+	userlist=findusers(form["searchkey"].value)
+	table = "<table><tr><td>Имя пользователя</td><td>ФИО</td><td>Номер студ билета</td></tr>"
+	for i in userlist:
+		table+="<tr><td><a href=\"./?getuser="+str(i[0])+"\">"+str(i[0]) +"</a></td><td>"+str(i[1])+"</td><td>"+str(i[2])+"</td></tr>"
+	table+="</table>"
+	print_ui(mainpage.decode('utf-8') % (table.decode('utf-8'),))
 	exit(0)
 if "getuser" in form:
 	header_html()
