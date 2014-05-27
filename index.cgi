@@ -27,6 +27,16 @@ userinfopage="""
 Номер студенческого билета: %s</br>
 Список групп: %s<br>
 Фотография: %s<br>
+
+<a href="./?reset=%s">Сбросить пароль</a>
+"""
+
+passwordupdatedpage="""
+<h1>Смена пароля</h1>
+Пароль заменён на: %s<br>
+Считать пароль телефоном:<br>
+<img src="data:image/png;base64,%s"/>
+<a href="./">Вернуться на основную страницу</a>
 """
 
 errorpage="""
@@ -92,66 +102,58 @@ def getphoto(username):
 		photo=empty
 	return begin + photo + end
 
+def resetpassword(username):
+	user={}
+	password=""
+	students_gid=grp.getgrnam("students")[2]
+	try:
+		passwd = pwd.getpwnam(username)
+	except:
+		return ""
+	#check that user is a student and generate password and qrcode from it
+	if passwd[3]==students_gid:
+		password="SoMeWeIrDpAsSwOrD"
+		conn = sqlite3.connect("database.sqlite3")
+		cursor = conn.cursor()
+		t = ( username, password )
+		cursor.execute('insert into queue (username, password) values (?, ?)', t)
+		conn.commit()
+		conn.close()
+	else:
+		password = ""
+	return password
 
 form = cgi.FieldStorage()
 
 if "searchkey" in form:
 	header_html()
-	print_ui(mainpage % "search results go here")
+	print_ui(mainpage.decode('utf-8') % "search results go here")
 	exit(0)
 if "getuser" in form:
 	header_html()
 	userinfo = getuser(form["getuser"].value)
 	photo = getphoto(form["getuser"].value)
-	t= (userinfo["username"], userinfo["fio"], userinfo["studnumber"], userinfo["groups"],photo)
+	t= (userinfo["username"], userinfo["fio"], userinfo["studnumber"], userinfo["groups"],photo, userinfo["username"])
 	ui = userinfopage.decode('utf-8') % t
 	print_ui(ui)
 	exit(0)
 if "reset" in form:
 	header_html()
+	newpassword=resetpassword(form["reset"].value)
+	if newpassword=="":
+		print_ui(errorpage % (form["reset"].value) )
+	else:
+		qr = qrcode.QRCode(version=10, error_correction=qrcode.ERROR_CORRECT_L)
+		qr.add_data(newpassword)
+		qr.make()
+		image = qr.make_image()
+		image_file = StringIO.StringIO()
+		image.save(image_file,"PNG")
+		ui = passwordupdatedpage.decode('utf-8') % (newpassword, base64.b64encode(image_file.getvalue()),)
+		print_ui(ui)
+	exit(0)
 
 
 header_html()
-print_ui(mainpage % "")
+print_ui(mainpage.decode('utf-8') % "")
 exit(0)
-#
-#	if form["query"].value == "reset":
-#		if "username" not in form:
-#		  	header_html()
-#			print json.dumps({"error": 1 });
-#		else:
-#		  	user={}
-#			students_gid=grp.getgrnam("students")[2]
-#			try:
-#				passwd = pwd.getpwnam(form["username"].value)
-#			except:
-#				header_html()
-#				print json.dumps({"error": 1 })
-#				exit(0)
-#			header_html()
-#			#check that user is a student and generate password and qrcode from it
-#			if passwd[3]==students_gid:
-#				password="SoMeWeIrDpAsSwOrD"
-#				conn = sqlite3.connect("database.sqlite3")
-#				cursor = conn.cursor()
-#				t = ( form["username"].value, password )
-#				cursor.execute('insert into queue (username, password) values (?, ?)', t)
-#				conn.commit()
-#				conn.close()
-#				print "<pre>New password will be set to:"
-#				print password
-#				print "</pre>"
-#				qr = qrcode.QRCode(version=10, error_correction=qrcode.ERROR_CORRECT_L)
-#				qr.add_data(password)
-#				qr.make()
-#				image = qr.make_image()
-#				image_file = StringIO.StringIO()
-#				image.save(image_file,"PNG")
-#				print "<img src=\"data:image/png;base64,"
-#				print base64.b64encode(image_file.getvalue())
-#				print "\"/>"
-#			else:
-#				print "<pre>Must be a student!</pre>"
-#		exit(0)
-#	print header_html()
-#	print "<pre>Blah!</pre>"
