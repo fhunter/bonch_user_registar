@@ -17,6 +17,7 @@ mainpage="""
 Ключ поиска:<input type="text" name="searchkey">
 <input type="submit" value="Submit">
 </form>
+%s
 """
 
 errorpage="""
@@ -38,9 +39,14 @@ def print_ui(page):
 	"""
 
 form = cgi.FieldStorage()
-if "query" not in form:
+
+if "searchkey" in form:
+	header_html()
+	print_ui(mainpage % "search results go here")
+	exit(0)
+if "userquery" not in form:
   	header_html()
-	print_ui(mainpage)
+	print_ui(mainpage % "")
 else:
 	if form["query"].value == "getuser":
 		if "username" not in form:
