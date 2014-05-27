@@ -19,6 +19,8 @@ mainpage="""
 <input type="submit" value="Submit">
 </form>
 %s
+<br>
+<a href="./?listreset=html">Очередь сброса паролей</a>
 """
 
 userinfopage="""
@@ -47,6 +49,10 @@ errorpage="""
 
 def header_html():
 	print "Content-type: text/html"
+	print ""
+
+def header_txt():
+	print "Content-type: text/plain"
 	print ""
 
 def print_ui(page):
@@ -169,6 +175,9 @@ if "reset" in form:
 		image.save(image_file,"PNG")
 		ui = passwordupdatedpage.decode('utf-8') % (newpassword, base64.b64encode(image_file.getvalue()),)
 		print_ui(ui)
+	exit(0)
+if "listreset" in form:
+	header_html()
 	exit(0)
 
 
