@@ -12,7 +12,7 @@ import StringIO
 import gpw
 cgitb.enable()
 
-mainpage="""
+mainpage=u"""
 <h1>Информация о пользователях и сброс паролей</h1>
 <form method="get" action="./" name="usersearch">
 Ключ поиска:<input type="text" name="searchkey">
@@ -23,7 +23,7 @@ mainpage="""
 <a href="./?listreset=html">Очередь сброса паролей</a>
 """
 
-userinfopage="""
+userinfopage=u"""
 <h1>Информация о пользователе</h1>
 Имя пользователя: %s<br>
 ФИО: %s<br>
@@ -34,7 +34,7 @@ userinfopage="""
 <a href="./?reset=%s">Сбросить пароль</a>
 """
 
-passwordupdatedpage="""
+passwordupdatedpage=u"""
 <h1>Смена пароля</h1>
 Пароль заменён на: %s<br>
 Считать пароль телефоном:<br>
@@ -48,7 +48,7 @@ resetlistpage=u"""
 <a href="./">Вернуться на основную страницу</a>
 """
 
-errorpage="""
+errorpage=u"""
 <h1>Error</h1>
 %s
 """
@@ -100,6 +100,7 @@ def getuser(username):
 	user["useddiskspace"] = 0
 	user["username"] = passwd[0]
 	user["groups"] = []
+	user["groups"].append(grp.getgrgid(passwd[3])[0])
 	for i in grp.getgrall():
 		if user["username"] in i[3]:
 			user["groups"].append(i[0])
@@ -153,25 +154,29 @@ form = cgi.FieldStorage()
 if "searchkey" in form:
 	header_html()
 	userlist=findusers(form["searchkey"].value)
-	table = "<table><tr><td>Имя пользователя</td><td>ФИО</td><td>Номер студ билета</td></tr>"
+	table = u"<table><tr><td>Имя пользователя</td><td>ФИО</td><td>Номер студ билета</td></tr>"
 	for i in userlist:
-		table+="<tr><td><a href=\"./?getuser="+str(i[0])+"\">"+str(i[0]) +"</a></td><td>"+str(i[1])+"</td><td>"+str(i[2])+"</td></tr>"
+		table+=u"<tr><td><a href=\"./?getuser="+unicode(i[0])+"\">"+unicode(i[0]) +"</a></td><td>"+unicode(i[1])+"</td><td>"+unicode(i[2])+"</td></tr>"
 	table+="</table>"
-	print_ui(mainpage.decode('utf-8') % (table.decode('utf-8'),))
+	print_ui(mainpage % (table,))
 	exit(0)
 if "getuser" in form:
 	header_html()
 	userinfo = getuser(form["getuser"].value)
 	photo = getphoto(form["getuser"].value)
-	t= (userinfo["username"], userinfo["fio"], userinfo["studnumber"], userinfo["groups"],photo, userinfo["username"])
-	ui = userinfopage.decode('utf-8') % t
+	grouptable = u"<table><tr><td>Группа</td></tr>"
+	for i in userinfo["groups"]:
+		grouptable += "<tr><td>" + unicode(i) + "</td></tr>"
+	grouptable += "</table>"
+	t= (userinfo["username"], userinfo["fio"], userinfo["studnumber"], grouptable,photo, userinfo["username"])
+	ui = userinfopage % t
 	print_ui(ui)
 	exit(0)
 if "reset" in form:
 	header_html()
 	newpassword=resetpassword(form["reset"].value)
 	if newpassword=="":
-		print_ui(errorpage.decode('utf-8') % "Пользователь должен быть в группе students" )
+		print_ui(errorpage % u"Пользователь должен быть в группе students" )
 	else:
 		qr = qrcode.QRCode(version=10, error_correction=qrcode.ERROR_CORRECT_L)
 		qr.add_data(newpassword)
