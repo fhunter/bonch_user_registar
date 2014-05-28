@@ -42,6 +42,12 @@ passwordupdatedpage="""
 <a href="./">Вернуться на основную страницу</a>
 """
 
+resetlistpage=u"""
+<h1>Очередь на сброс паролей</h1>
+%s
+<a href="./">Вернуться на основную страницу</a>
+"""
+
 errorpage="""
 <h1>Error</h1>
 %s
@@ -178,6 +184,17 @@ if "reset" in form:
 	exit(0)
 if "listreset" in form:
 	header_html()
+	results=""
+	conn = sqlite3.connect("database.sqlite3")
+	cursor = conn.cursor()
+	cursor.execute('select * from queue where done="false" order by date desc')
+	data = cursor.fetchall()
+	conn.close()
+	results = u"<table border=1><tr><td>Имя пользователя</td><td>Время и дата</td><td>Новый пароль</td></tr>"
+	for i in data:
+		results += "<tr><td>" + i[1] + "</td><td>" + i[3] + "</td><td>" + i[2] + "</td></tr>" 
+	results += "</table>"
+	print_ui(resetlistpage % results )
 	exit(0)
 
 
