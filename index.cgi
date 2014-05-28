@@ -138,7 +138,7 @@ def resetpassword(username):
 	#check that user is a student and generate password and qrcode from it
 	if passwd[3]==students_gid:
 		#password="SoMeWeIrDpAsSwOrD"
-		password=gpw.GPW(10).password
+		password=gpw.GPW(15).password
 		conn = sqlite3.connect("database.sqlite3")
 		cursor = conn.cursor()
 		t = ( username, password )
@@ -184,7 +184,7 @@ if "reset" in form:
 		image = qr.make_image()
 		image_file = StringIO.StringIO()
 		image.save(image_file,"PNG")
-		ui = passwordupdatedpage.decode('utf-8') % (newpassword, base64.b64encode(image_file.getvalue()),)
+		ui = passwordupdatedpage % (newpassword, base64.b64encode(image_file.getvalue()),)
 		print_ui(ui)
 	exit(0)
 if "listreset" in form:
@@ -204,5 +204,5 @@ if "listreset" in form:
 
 
 header_html()
-print_ui(mainpage.decode('utf-8') % "")
+print_ui(mainpage % "")
 exit(0)
