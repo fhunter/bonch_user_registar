@@ -2,6 +2,7 @@
 
 Для включения в Apache:
 
+```
 <Directory /var/www/selfreg>
     AddHandler cgi-script .cgi
     AddHandler cgi-script .py
@@ -18,6 +19,7 @@
     Require group personal
     Require group teachers
 </Directory>
+```
 
 Использованные модули:
  * modauth_kerberos
