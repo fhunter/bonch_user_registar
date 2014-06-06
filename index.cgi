@@ -63,7 +63,7 @@ def header_txt():
 
 def print_ui(page):
 	print """
-	<html><meta http-equiv="Content-Type" content="text/html;charset=utf8"><head></head><body>
+	<html><head><meta http-equiv="Content-Type" content="text/html;charset=utf8"></head><body>
 	"""
 	print page.encode('utf-8')
 	print """
