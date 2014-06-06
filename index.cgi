@@ -29,7 +29,7 @@ userinfopage=u"""
 Имя пользователя: %s<br>
 ФИО: %s<br>
 Номер студенческого билета: %s</br>
-Дисковая квота: <font color=red>использовано %d Кб</font> <font color=green>из доступных %d Кб</font><br>
+Дисковая квота:<br><font color=red>использовано %d Кб</font><br><font color=green>из доступных %d Кб</font><br>
 %s<br>
 Список групп: %s<br>
 Фотография: %s<br>
@@ -181,8 +181,8 @@ if "getuser" in form:
 	image = Image.new("RGB",(514,18), "white")
 	image.im.paste((0,0,0),(0,0,514,18))
 	image.im.paste((255,255,255),(1,1,513,17))
-	image.im.paste((0,255,0),(1,1,int(1+(512.0/max(quota,useddisk))*quota),1+8))
-	image.im.paste((255,0,0),(1,9,int(1+(512.0/max(quota,useddisk))*useddisk),9+8))
+	image.im.paste((0,255,0),(1,9,int(1+(512.0/max(quota,useddisk))*quota),9+8))
+	image.im.paste((255,0,0),(1,1,int(1+(512.0/max(quota,useddisk))*useddisk),1+8))
 	image.save(image_file, "PNG")
 	image_file = base64.b64encode(image_file.getvalue())
 	image_file = "<img src=\"data:image/png;base64,"+image_file+"\"/>"
