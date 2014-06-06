@@ -7,6 +7,7 @@ import pwd
 import grp
 import base64
 import json
+from PIL import Image
 import qrcode
 import StringIO
 import gpw
@@ -28,6 +29,8 @@ userinfopage=u"""
 Имя пользователя: %s<br>
 ФИО: %s<br>
 Номер студенческого билета: %s</br>
+Дисковая квота: <font color=red>использовано %d Кб</font> <font color=green>из доступных %d Кб</font><br>
+%s<br>
 Список групп: %s<br>
 Фотография: %s<br>
 
@@ -92,12 +95,14 @@ def getuser(username):
 	t = ( username, )
 	cursor.execute('select fio,studnum from users where username = ?', t)
 	result=cursor.fetchone()
+	cursor.execute('select usedspace,softlimit from quota where username = ?',t)
+	quotaresult=cursor.fetchone()
 	conn.close()
 	
 	user["fio"] = result[0]
 	user["studnumber"] = result[1]
-	user["quota"] = 0
-	user["useddiskspace"] = 0
+	user["quota"] = int(quotaresult[1])
+	user["useddiskspace"] = int(quotaresult[0])
 	user["username"] = passwd[0]
 	user["groups"] = []
 	user["groups"].append(grp.getgrgid(passwd[3])[0])
@@ -168,7 +173,20 @@ if "getuser" in form:
 	for i in userinfo["groups"]:
 		grouptable += "<tr><td>" + unicode(i) + "</td></tr>"
 	grouptable += "</table>"
-	t= (userinfo["username"], userinfo["fio"], userinfo["studnumber"], grouptable,photo, userinfo["username"])
+
+	quota = int(userinfo["quota"])
+	useddisk = int(userinfo["useddiskspace"])
+
+	image_file = StringIO.StringIO()
+	image = Image.new("RGB",(514,18), "white")
+	image.im.paste((0,0,0),(0,0,514,18))
+	image.im.paste((255,255,255),(1,1,513,17))
+	image.im.paste((0,255,0),(1,1,int(1+(512.0/max(quota,useddisk))*quota),1+8))
+	image.im.paste((255,0,0),(1,9,int(1+(512.0/max(quota,useddisk))*useddisk),9+8))
+	image.save(image_file, "PNG")
+	image_file = base64.b64encode(image_file.getvalue())
+	image_file = "<img src=\"data:image/png;base64,"+image_file+"\"/>"
+	t= (userinfo["username"], userinfo["fio"], userinfo["studnumber"],useddisk,quota,image_file, grouptable,photo, userinfo["username"])
 	ui = userinfopage % t
 	print_ui(ui)
 	exit(0)
