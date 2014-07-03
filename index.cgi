@@ -4,6 +4,7 @@ import cgi
 import cgitb
 import sqlite3
 import pwd
+import os
 import grp
 import base64
 import json
@@ -146,8 +147,9 @@ def resetpassword(username):
 		password=gpw.GPW(15).password
 		conn = sqlite3.connect("database.sqlite3")
 		cursor = conn.cursor()
-		t = ( username, password )
-		cursor.execute('insert into queue (username, password) values (?, ?)', t)
+		currentuser = os.environ["REMOTE_USER"]
+		t = ( username, password, currentuser )
+		cursor.execute('insert into queue (username, password, resetedby) values (?, ?, ?)', t)
 		conn.commit()
 		conn.close()
 	else:
@@ -213,9 +215,9 @@ if "listreset" in form:
 	cursor.execute('select * from queue where done="false" order by date desc')
 	data = cursor.fetchall()
 	conn.close()
-	results = u"<table border=1><tr><td>Имя пользователя</td><td>Время и дата</td><td>Новый пароль</td></tr>"
+	results = u"<table border=1><tr><td>Имя пользователя</td><td>Время и дата</td><td>Новый пароль</td><td>Сброшено пользователем</td></tr>"
 	for i in data:
-		results += "<tr><td>" + i[1] + "</td><td>" + i[3] + "</td><td>" + i[2] + "</td></tr>" 
+		results += "<tr><td>" + i[1] + "</td><td>" + i[3] + "</td><td>" + i[2] + "</td><td>" + i[5] +"</td></tr>" 
 	results += "</table>"
 	print_ui(resetlistpage % results )
 	exit(0)
