@@ -267,7 +267,7 @@ if "resetstats" in form:
 	cursor.execute("select count() from queue")
 	result=cursor.fetchall()
 	count = result[0][0]
-	t = u"Всего пароли сброшены %s раз<br>" % count
+	t = u"Всего пароли сброшены: %s раз<br>" % count
 	cursor.execute("select count() from queue where done= ?", ( 'false',))
 	result=cursor.fetchall()
 	count = result[0][0]
@@ -280,11 +280,11 @@ if "resetstats" in form:
 	except:
 		t+= u"Выполненных запросов не найдено<br>"
 	cursor.execute("select username,count(username) from queue group by username order by count(username) desc limit 10")
-	t+=u"Наиболее часто сбрасываемые пароли<br>"
+	t+=u"<h2>Наиболее часто сбрасываемые пароли</h2><br>"
 	for i in cursor.fetchall():
 		t+=u"Пользователь: %s сброшен: %s раз<br>" % (i[0],i[1])
 	cursor.execute("select resetedby,count(resetedby) from queue group by resetedby order by count(resetedby) desc limit 10")
-	t+=u"Top 10 лаборантов чаще всего сбрасывавших пароли<br>"
+	t+=u"<h2>Top 10 лаборантов чаще всего сбрасывавших пароли</h2><br>"
 	for i in cursor.fetchall():
 		t+=u"Пользователь: %s сбросил: %s раз<br>" % (i[0],i[1])
 	conn.close()
