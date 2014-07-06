@@ -147,13 +147,20 @@ def getphoto(username):
 		photo=empty
 	return begin + photo + end
 
-def makequota_image(used,quota):
+def makequota_image(used,quota,small=False):
 	image_file = StringIO.StringIO()
-	image = Image.new("RGB",(514,18), "white")
-	image.im.paste((0,0,0),(0,0,514,18))
-	image.im.paste((255,255,255),(1,1,513,17))
-	image.im.paste((0,255,0),(1,9,int(1+(512.0/max(quota,used))*quota),9+8))
-	image.im.paste((255,0,0),(1,1,int(1+(512.0/max(quota,used))*used),1+8))
+	if small:
+		image = Image.new("RGB",(514,18), "white")
+		image.im.paste((0,0,0),(0,0,514,18))
+		image.im.paste((255,255,255),(1,1,513,17))
+		image.im.paste((0,255,0),(1,9,int(1+(512.0/max(quota,used))*quota),9+8))
+		image.im.paste((255,0,0),(1,1,int(1+(512.0/max(quota,used))*used),1+8))
+	else:
+		image = Image.new("RGB",(514,34), "white")
+		image.im.paste((0,0,0),(0,0,514,34))
+		image.im.paste((255,255,255),(1,1,513,33))
+		image.im.paste((0,255,0),(1,17,int(1+(512.0/max(quota,used))*quota),17+16))
+		image.im.paste((255,0,0),(1,1,int(1+(512.0/max(quota,used))*used),1+16))
 	image.save(image_file, "PNG")
 	image_file = base64.b64encode(image_file.getvalue())
 	image_file = "<img src=\"data:image/png;base64,"+image_file+"\"/>"
@@ -169,7 +176,6 @@ def resetpassword(username):
 		return ""
 	#check that user is a student and generate password and qrcode from it
 	if passwd[3]==students_gid:
-		#password="SoMeWeIrDpAsSwOrD"
 		password=gpw.GPW(15).password
 		conn = sqlite3.connect("database.sqlite3")
 		cursor = conn.cursor()
@@ -241,7 +247,18 @@ if "listreset" in form:
 	exit(0)
 if "listoverquota" in form:
 	header_html()
-	print_ui(overquotapage)
+	conn = sqlite3.connect("database.sqlite3")
+	cursor = conn.cursor()
+	cursor.execute("select username from quota where usedspace > softlimit and softlimit > 0")
+	result=cursor.fetchall()
+	table=""
+	for i in result:
+		userinfo = getuser(i[0])
+		quota = int(userinfo["quota"])
+		useddisk = int(userinfo["useddiskspace"])
+		image_file = makequota_image(useddisk,quota,True)
+		table+= i[0] + image_file + u"Квота %s/%s" % (useddisk,quota) + "<br>"
+	print_ui(overquotapage % table)
 	exit(0)
 if "resetstats" in form:
 	header_html()
