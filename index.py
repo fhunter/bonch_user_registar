@@ -22,7 +22,9 @@ mainpage=u"""
 </form>
 %s
 <br>
-<a href="./?listreset=html">Очередь сброса паролей</a>
+<a href="./?listreset=html">Очередь сброса паролей</a><br>
+<a href="./?listoverquota=html">Список пользователей с превышением квоты</a><br>
+<a href="./?resetstats=html">Статистика по сбросу пароля</a><br>
 """
 
 userinfopage=u"""
@@ -48,6 +50,18 @@ passwordupdatedpage=u"""
 
 resetlistpage=u"""
 <h1>Очередь на сброс паролей</h1>
+%s
+<a href="./">Вернуться на основную страницу</a>
+"""
+
+overquotapage=u"""
+<h1>Превысившие квоту</h1>
+%s
+<a href="./">Вернуться на основную страницу</a>
+"""
+
+statisticspage=u"""
+<h1>Статистика сброса пароля</h1>
 %s
 <a href="./">Вернуться на основную страницу</a>
 """
@@ -133,6 +147,18 @@ def getphoto(username):
 		photo=empty
 	return begin + photo + end
 
+def makequota_image(used,quota):
+	image_file = StringIO.StringIO()
+	image = Image.new("RGB",(514,18), "white")
+	image.im.paste((0,0,0),(0,0,514,18))
+	image.im.paste((255,255,255),(1,1,513,17))
+	image.im.paste((0,255,0),(1,9,int(1+(512.0/max(quota,used))*quota),9+8))
+	image.im.paste((255,0,0),(1,1,int(1+(512.0/max(quota,used))*used),1+8))
+	image.save(image_file, "PNG")
+	image_file = base64.b64encode(image_file.getvalue())
+	image_file = "<img src=\"data:image/png;base64,"+image_file+"\"/>"
+	return image_file
+
 def resetpassword(username):
 	user={}
 	password=""
@@ -179,15 +205,7 @@ if "getuser" in form:
 	quota = int(userinfo["quota"])
 	useddisk = int(userinfo["useddiskspace"])
 
-	image_file = StringIO.StringIO()
-	image = Image.new("RGB",(514,18), "white")
-	image.im.paste((0,0,0),(0,0,514,18))
-	image.im.paste((255,255,255),(1,1,513,17))
-	image.im.paste((0,255,0),(1,9,int(1+(512.0/max(quota,useddisk))*quota),9+8))
-	image.im.paste((255,0,0),(1,1,int(1+(512.0/max(quota,useddisk))*useddisk),1+8))
-	image.save(image_file, "PNG")
-	image_file = base64.b64encode(image_file.getvalue())
-	image_file = "<img src=\"data:image/png;base64,"+image_file+"\"/>"
+	image_file = makequota_image(useddisk,quota)
 	t= (userinfo["username"], userinfo["fio"], userinfo["studnumber"],useddisk,quota,image_file, grouptable,photo, userinfo["username"])
 	ui = userinfopage % t
 	print_ui(ui)
@@ -220,6 +238,40 @@ if "listreset" in form:
 		results += "<tr><td>" + i[1] + "</td><td>" + i[3] + "</td><td>" + i[2] + "</td><td>" + i[5] +"</td></tr>" 
 	results += "</table>"
 	print_ui(resetlistpage % results )
+	exit(0)
+if "listoverquota" in form:
+	header_html()
+	print_ui(overquotapage)
+	exit(0)
+if "resetstats" in form:
+	header_html()
+	conn = sqlite3.connect("database.sqlite3")
+	cursor = conn.cursor()
+	cursor.execute("select count() from queue")
+	result=cursor.fetchall()
+	count = result[0][0]
+	t = u"Всего пароли сброшены %s раз<br>" % count
+	cursor.execute("select count() from queue where done= ?", ( 'false',))
+	result=cursor.fetchall()
+	count = result[0][0]
+	t+= u"В очереди на сброс паролей %s запросов<br>" % count
+	cursor.execute("select date from queue where done = ? order by date desc limit 1", ( 'true', ))
+	result=cursor.fetchall()
+	try:
+		date=result[0][0]
+		t+= u"Последний выполненный запрос пришёл %s <br>" % date
+	except:
+		t+= u"Выполненных запросов не найдено<br>"
+	cursor.execute("select username,count(username) from queue group by username order by count(username) desc limit 10")
+	t+=u"Наиболее часто сбрасываемые пароли<br>"
+	for i in cursor.fetchall():
+		t+=u"Пользователь: %s сброшен: %s раз<br>" % (i[0],i[1])
+	cursor.execute("select resetedby,count(resetedby) from queue group by resetedby order by count(resetedby) desc limit 10")
+	t+=u"Top 10 лаборантов чаще всего сбрасывавших пароли<br>"
+	for i in cursor.fetchall():
+		t+=u"Пользователь: %s сбросил: %s раз<br>" % (i[0],i[1])
+	conn.close()
+	print_ui(statisticspage % t)
 	exit(0)
 
 
