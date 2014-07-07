@@ -190,6 +190,9 @@ def resetpassword(username):
 
 form = cgi.FieldStorage()
 
+pages = { "searchkey": mainpage, "getuser": userinfopage, "reset": passwordupdatedpage, "listreset": resetlistpage, "listoverquota": overquotapage, "resetstats": statisticspage}
+functions = { "searchkey": mainpage, "getuser": userinfopage, "reset": passwordupdatedpage, "listreset": None, "listoverquota": None, "resetstats": None }
+
 if "searchkey" in form:
 	header_html()
 	userlist=findusers(form["searchkey"].value)
