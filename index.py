@@ -302,12 +302,18 @@ if "resetstats" in form:
 		t+= u"Выполненных запросов не найдено<br>"
 	cursor.execute("select username,count(username) from queue group by username order by count(username) desc limit 10")
 	t+=u"<h2>Наиболее часто сбрасываемые пароли</h2><br>"
+	table = u"<table border=1><tr><td>Пользователь</td><td>сброшен</td></tr>"
 	for i in cursor.fetchall():
-		t+=u"Пользователь: %s сброшен: %s раз<br>" % (i[0],i[1])
+		table += u"<tr><td>%s</td><td>%s раз</td></tr>" % (i[0],i[1])
+	table += u"</table>"
+	t+=table
 	cursor.execute("select resetedby,count(resetedby) from queue group by resetedby order by count(resetedby) desc limit 10")
 	t+=u"<h2>Top 10 лаборантов чаще всего сбрасывавших пароли</h2><br>"
+	table = u"<table border=1><tr><td>Пользователь</td><td>сбросил</td></tr>"
 	for i in cursor.fetchall():
-		t+=u"Пользователь: %s сбросил: %s раз<br>" % (i[0],i[1])
+		table += u"<tr><td>%s</td><td>%s раз</td></tr>" % (i[0],i[1])
+	table += u"</table>"
+	t+=table
 	conn.close()
 	print_ui(statisticspage % t)
 	exit(0)
