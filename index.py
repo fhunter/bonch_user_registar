@@ -2,16 +2,17 @@
 # coding=utf-8
 import cgi
 import cgitb
-import sqlite3
+#import sqlite3
 import pwd
 import os
 import grp
 import base64
-import json
+#import json
 from PIL import Image
 import qrcode
 import StringIO
 import gpw
+from my_db import db_exec_sql
 cgitb.enable()
 
 mainpage=u"""
@@ -90,13 +91,9 @@ def print_ui(page):
 
 def findusers(key):
 	userlist = []
-	conn = sqlite3.connect("database.sqlite3")
-	cursor = conn.cursor()
 	key = '%' + key + '%'
 	t = ( key, key, key )
-	cursor.execute("select username,fio,studnum from users where (username like ?) or (fio like ?) or (studnum like ?)", t)
-	result=cursor.fetchall()
-	conn.close()
+	result=db_exec_sql("select username,fio,studnum from users where (username like ?) or (fio like ?) or (studnum like ?)", t)
 	return result 
 
 def getuser(username):
@@ -105,14 +102,9 @@ def getuser(username):
 		passwd = pwd.getpwnam(username)
 	except:
 		return user
-	conn = sqlite3.connect("database.sqlite3")
-	cursor = conn.cursor()
 	t = ( username, )
-	cursor.execute('select fio,studnum from users where username = ?', t)
-	result=cursor.fetchone()
-	cursor.execute('select usedspace,softlimit from quota where username = ?',t)
-	quotaresult=cursor.fetchone()
-	conn.close()
+	result=db_exec_sql('select fio,studnum from users where username = ?', t)[0]
+	quotaresult=db_exec_sql('select usedspace,softlimit from quota where username = ?',t)[0]
 	
 	user["fio"] = result[0]
 	user["studnumber"] = result[1]
@@ -133,16 +125,12 @@ def getphoto(username):
 		iVBORw0KGgoAAAANSUhEUgAAAGQAAABkAQAAAABYmaj5AAAAAmJLR0QAAd2KE6QAAAAZSURBVDjLY/
 		iPBD4wjPJGeaO8Ud4oj8Y8AL7rCVzcsTKLAAAAAElFTkSuQmCC
 	"""
-	conn = sqlite3.connect("database.sqlite3")
-	cursor = conn.cursor()
 	t = ( username, )
-	cursor.execute('select photo from users where username = ?', t)
-	photo=cursor.fetchone()
+	photo=db_exec_sql('select photo from users where username = ?', t)[0]
 	if photo == None:
 		photo=empty
 	else:
 		photo=photo[0]
-	conn.close()
 	if photo==None:
 		photo=empty
 	return begin + photo + end
@@ -255,11 +243,7 @@ if "reset" in form:
 if "listreset" in form:
 	header_html()
 	results=""
-	conn = sqlite3.connect("database.sqlite3")
-	cursor = conn.cursor()
-	cursor.execute('select * from queue where done="false" order by date desc')
-	data = cursor.fetchall()
-	conn.close()
+	data = db_exec_sql('select * from queue where done="false" order by date desc')
 	results = u"<table border=1><tr><td>Имя пользователя</td><td>Время и дата</td><td>Новый пароль</td><td>Сброшено пользователем</td></tr>"
 	for i in data:
 		results += "<tr><td>" + i[1] + "</td><td>" + i[3] + "</td><td>" + i[2] + "</td><td>" + i[5] +"</td></tr>" 
@@ -268,10 +252,7 @@ if "listreset" in form:
 	exit(0)
 if "listoverquota" in form:
 	header_html()
-	conn = sqlite3.connect("database.sqlite3")
-	cursor = conn.cursor()
-	cursor.execute("select username from quota where usedspace > softlimit and softlimit > 0")
-	result=cursor.fetchall()
+	result = db_exec_sql("select username from quota where usedspace > softlimit and softlimit > 0")
 	table=""
 	for i in result:
 		userinfo = getuser(i[0])
@@ -283,38 +264,32 @@ if "listoverquota" in form:
 	exit(0)
 if "resetstats" in form:
 	header_html()
-	conn = sqlite3.connect("database.sqlite3")
-	cursor = conn.cursor()
-	cursor.execute("select count() from queue")
-	result=cursor.fetchall()
+	result = db_exec_sql("select count() from queue")
 	count = result[0][0]
 	t = u"Всего пароли сброшены: %s раз<br>" % count
-	cursor.execute("select count() from queue where done= ?", ( 'false',))
-	result=cursor.fetchall()
+	result = db_exec_sql("select count() from queue where done= ?", ( 'false',))
 	count = result[0][0]
 	t+= u"В очереди на сброс паролей %s запросов<br>" % count
-	cursor.execute("select date from queue where done = ? order by date desc limit 1", ( 'true', ))
-	result=cursor.fetchall()
+	result = db_exec_sql("select date from queue where done = ? order by date desc limit 1", ( 'true', ))
 	try:
 		date=result[0][0]
 		t+= u"Последний выполненный запрос пришёл %s <br>" % date
 	except:
 		t+= u"Выполненных запросов не найдено<br>"
-	cursor.execute("select username,count(username) from queue group by username order by count(username) desc limit 10")
+	result = db_exec_sql("select username,count(username) from queue group by username order by count(username) desc limit 10")
 	t+=u"<h2>Наиболее часто сбрасываемые пароли</h2><br>"
 	table = u"<table border=1><tr><td>Пользователь</td><td>сброшен</td></tr>"
-	for i in cursor.fetchall():
+	for i in result:
 		table += u"<tr><td>%s</td><td>%s раз</td></tr>" % (i[0],i[1])
 	table += u"</table>"
 	t+=table
-	cursor.execute("select resetedby,count(resetedby) from queue group by resetedby order by count(resetedby) desc limit 10")
+	result=db_exec_sql("select resetedby,count(resetedby) from queue group by resetedby order by count(resetedby) desc limit 10")
 	t+=u"<h2>Top 10 лаборантов чаще всего сбрасывавших пароли</h2><br>"
 	table = u"<table border=1><tr><td>Пользователь</td><td>сбросил</td></tr>"
-	for i in cursor.fetchall():
+	for i in result:
 		table += u"<tr><td>%s</td><td>%s раз</td></tr>" % (i[0],i[1])
 	table += u"</table>"
 	t+=table
-	conn.close()
 	print_ui(statisticspage % t)
 	exit(0)
 
