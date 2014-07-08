@@ -82,7 +82,10 @@ def header_txt():
 
 def print_ui(page):
 	print """
-	<html><head><meta http-equiv="Content-Type" content="text/html;charset=utf8"></head><body>
+	<html><head><meta http-equiv="Content-Type" content="text/html;charset=utf8">
+        <link rel="stylesheet" type="text/css" href="style.css" />
+	<title>Управление пользователями</title>
+	</head><body>
 	"""
 	print page.encode('utf-8')
 	print """
@@ -212,7 +215,7 @@ if "getuser" in form:
 	header_html()
 	userinfo = getuser(form["getuser"].value)
 	photo = getphoto(form["getuser"].value)
-	grouptable = u"<table><tr><td>Группа</td></tr>"
+	grouptable = u"<table>"
 	for i in userinfo["groups"]:
 		grouptable += "<tr><td>" + unicode(i) + "</td></tr>"
 	grouptable += "</table>"

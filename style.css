@@ -12,6 +12,47 @@ width: 900px;
 height: 1000px;
 }
 
+div {
+   border: 1px dashed black;
+}
+
+.UI_tab {
+  position: relative;
+  width: inherit;
+}
+
+.list_element {
+  padding: 1px;
+  margin: 1px;
+  border: 1px solid red;
+  border-radius: 6px;
+}
+
+.refresh_button {
+  text-align: right;
+}
+
+.edit_button {
+  text-align: left;
+  width: 50%;
+}
+
+.delete_button {
+  text-align: right;
+  width: 50%;
+}
+
+.field_name {
+  background: red;
+  display: table-cell;
+}
+
+.field_value {
+  background: yellow;
+  display: table-cell;
+}
+
+
 #header {
 background: #838283;
 height: 50px;
