@@ -188,10 +188,28 @@ def resetpassword(username):
 		password = ""
 	return password
 
+def mainpage_ui(form):
+	pass
+
+def userinfopage_ui(form):
+	pass
+
+def passwordupdatedpage_ui(form):
+	pass
+
+def resetlistpage_ui(form):
+	pass
+
+def overquotapage_ui(form):
+	pass
+
+def statisticspage_ui(form):
+	pass
+
 form = cgi.FieldStorage()
 
 pages = { "searchkey": mainpage, "getuser": userinfopage, "reset": passwordupdatedpage, "listreset": resetlistpage, "listoverquota": overquotapage, "resetstats": statisticspage}
-functions = { "searchkey": mainpage, "getuser": userinfopage, "reset": passwordupdatedpage, "listreset": None, "listoverquota": None, "resetstats": None }
+functions = { "searchkey": mainpage_ui, "getuser": userinfopage_ui, "reset": passwordupdatedpage_ui, "listreset": resetlistpage_ui, "listoverquota": overquotapage_ui, "resetstats": statisticspage_ui }
 
 if "searchkey" in form:
 	header_html()
