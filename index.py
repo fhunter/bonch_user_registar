@@ -180,29 +180,6 @@ def resetpassword(username):
 	return password
 
 def mainpage_ui(form):
-	pass
-
-def userinfopage_ui(form):
-	pass
-
-def passwordupdatedpage_ui(form):
-	pass
-
-def resetlistpage_ui(form):
-	pass
-
-def overquotapage_ui(form):
-	pass
-
-def statisticspage_ui(form):
-	pass
-
-form = cgi.FieldStorage()
-
-pages = { "searchkey": mainpage, "getuser": userinfopage, "reset": passwordupdatedpage, "listreset": resetlistpage, "listoverquota": overquotapage, "resetstats": statisticspage}
-functions = { "searchkey": mainpage_ui, "getuser": userinfopage_ui, "reset": passwordupdatedpage_ui, "listreset": resetlistpage_ui, "listoverquota": overquotapage_ui, "resetstats": statisticspage_ui }
-
-if "searchkey" in form:
 	header_html()
 	userlist=findusers(form["searchkey"].value)
 	table = u"<table><tr><td>Имя пользователя</td><td>ФИО</td><td>Номер студ билета</td></tr>"
@@ -210,8 +187,9 @@ if "searchkey" in form:
 		table+=u"<tr><td><a href=\"./?getuser="+unicode(i[0])+"\">"+unicode(i[0]) +"</a></td><td>"+unicode(i[1])+"</td><td>"+unicode(i[2])+"</td></tr>"
 	table+="</table>"
 	print_ui(mainpage % (table,))
-	exit(0)
-if "getuser" in form:
+	pass
+
+def userinfopage_ui(form):
 	header_html()
 	userinfo = getuser(form["getuser"].value)
 	photo = getphoto(form["getuser"].value)
@@ -227,8 +205,8 @@ if "getuser" in form:
 	t= (userinfo["username"], userinfo["fio"], userinfo["studnumber"],useddisk,quota,image_file, grouptable,photo, userinfo["username"])
 	ui = userinfopage % t
 	print_ui(ui)
-	exit(0)
-if "reset" in form:
+
+def passwordupdatedpage_ui(form):
 	header_html()
 	newpassword=resetpassword(form["reset"].value)
 	if newpassword=="":
@@ -242,8 +220,8 @@ if "reset" in form:
 		image.save(image_file,"PNG")
 		ui = passwordupdatedpage % (newpassword, base64.b64encode(image_file.getvalue()),)
 		print_ui(ui)
-	exit(0)
-if "listreset" in form:
+
+def resetlistpage_ui(form):
 	header_html()
 	results=""
 	data = db_exec_sql('select * from queue where done="false" order by date desc')
@@ -252,8 +230,8 @@ if "listreset" in form:
 		results += "<tr><td>" + i[1] + "</td><td>" + i[3] + "</td><td>" + i[2] + "</td><td>" + i[5] +"</td></tr>" 
 	results += "</table>"
 	print_ui(resetlistpage % results )
-	exit(0)
-if "listoverquota" in form:
+
+def overquotapage_ui(form):
 	header_html()
 	result = db_exec_sql("select username from quota where usedspace > softlimit and softlimit > 0")
 	table=""
@@ -264,8 +242,8 @@ if "listoverquota" in form:
 		image_file = makequota_image(useddisk,quota,True)
 		table+= i[0] + image_file + u"Квота %s/%s" % (useddisk,quota) + "<br>"
 	print_ui(overquotapage % table)
-	exit(0)
-if "resetstats" in form:
+
+def statisticspage_ui(form):
 	header_html()
 	result = db_exec_sql("select count() from queue")
 	count = result[0][0]
@@ -294,8 +272,30 @@ if "resetstats" in form:
 	table += u"</table>"
 	t+=table
 	print_ui(statisticspage % t)
-	exit(0)
 
+form = cgi.FieldStorage()
+
+pages = { "searchkey": mainpage, "getuser": userinfopage, "reset": passwordupdatedpage, "listreset": resetlistpage, "listoverquota": overquotapage, "resetstats": statisticspage}
+functions = { "searchkey": mainpage_ui, "getuser": userinfopage_ui, "reset": passwordupdatedpage_ui, "listreset": resetlistpage_ui, "listoverquota": overquotapage_ui, "resetstats": statisticspage_ui }
+
+if "searchkey" in form:
+	mainpage_ui(form)
+	exit(0)
+if "getuser" in form:
+	userinfopage_ui(form)
+	exit(0)
+if "reset" in form:
+	passwordupdatedpage_ui(form)
+	exit(0)
+if "listreset" in form:
+	resetlistpage_ui(form)
+	exit(0)
+if "listoverquota" in form:
+	overquotapage_ui(form)
+	exit(0)
+if "resetstats" in form:
+	statisticspage_ui(form)
+	exit(0)
 
 header_html()
 print_ui(mainpage % "")
