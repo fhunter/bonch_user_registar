@@ -234,13 +234,19 @@ def resetlistpage_ui(form):
 def overquotapage_ui(form):
 	header_html()
 	result = db_exec_sql("select username from quota where usedspace > softlimit and softlimit > 0")
-	table=""
+	table=u"<table><tr><td>Пользователь</td><td>Квота</td><td>Использовано</td><td>Доступно</td></tr>"
 	for i in result:
 		userinfo = getuser(i[0])
 		quota = int(userinfo["quota"])
 		useddisk = int(userinfo["useddiskspace"])
 		image_file = makequota_image(useddisk,quota,True)
-		table+= i[0] + image_file + u"Квота %s/%s" % (useddisk,quota) + "<br>"
+		table+= u"""<tr>
+			<td>%s</td>
+			<td>%s</td>
+			<td>%s</td>
+			<td>%s</td>
+		</tr>""" % (i[0],image_file,useddisk,quota)
+	table += u"</table>"
 	print_ui(overquotapage % table)
 
 def statisticspage_ui(form):
