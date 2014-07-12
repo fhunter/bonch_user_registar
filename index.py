@@ -76,10 +76,6 @@ def header_html():
 	print "Content-type: text/html"
 	print ""
 
-def header_txt():
-	print "Content-type: text/plain"
-	print ""
-
 def print_ui(page):
 	print """
 	<html><head><meta http-equiv="Content-Type" content="text/html;charset=utf8">
