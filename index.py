@@ -2,12 +2,10 @@
 # coding=utf-8
 import cgi
 import cgitb
-#import sqlite3
 import pwd
 import os
 import grp
 import base64
-#import json
 from PIL import Image
 import qrcode
 import StringIO
@@ -17,15 +15,15 @@ cgitb.enable()
 
 mainpage=u"""
 <h1>Информация о пользователях и сброс паролей</h1>
-<form method="get" action="./" name="usersearch">
+<form method="post" action="./?page=searchkey" name="usersearch">
 Ключ поиска:<input type="text" name="searchkey">
 <input type="submit" value="Submit">
 </form>
 %s
 <br>
-<a href="./?listreset=html">Очередь сброса паролей</a><br>
-<a href="./?listoverquota=html">Список пользователей с превышением квоты</a><br>
-<a href="./?resetstats=html">Статистика по сбросу пароля</a><br>
+<a href="./?page=listreset">Очередь сброса паролей</a><br>
+<a href="./?page=listoverquota">Список пользователей с превышением квоты</a><br>
+<a href="./?page=resetstats">Статистика по сбросу пароля</a><br>
 """
 
 userinfopage=u"""
@@ -38,7 +36,7 @@ userinfopage=u"""
 Список групп: %s<br>
 Фотография: %s<br>
 
-<a href="./?reset=%s">Сбросить пароль</a>
+<a href="./?page=reset&reset=%s">Сбросить пароль</a>
 """
 
 passwordupdatedpage=u"""
@@ -164,13 +162,9 @@ def resetpassword(username):
 	#check that user is a student and generate password and qrcode from it
 	if passwd[3]==students_gid:
 		password=gpw.GPW(15).password
-		conn = sqlite3.connect("database.sqlite3")
-		cursor = conn.cursor()
 		currentuser = os.environ["REMOTE_USER"]
 		t = ( username, password, currentuser )
-		cursor.execute('insert into queue (username, password, resetedby) values (?, ?, ?)', t)
-		conn.commit()
-		conn.close()
+		db_exec_sql('insert into queue (username, password, resetedby) values (?, ?, ?)', t)
 	else:
 		password = ""
 	return password
@@ -180,10 +174,9 @@ def mainpage_ui(form):
 	userlist=findusers(form["searchkey"].value)
 	table = u"<table><tr><td>Имя пользователя</td><td>ФИО</td><td>Номер студ билета</td></tr>"
 	for i in userlist:
-		table+=u"<tr><td><a href=\"./?getuser="+unicode(i[0])+"\">"+unicode(i[0]) +"</a></td><td>"+unicode(i[1])+"</td><td>"+unicode(i[2])+"</td></tr>"
+		table+=u"<tr><td><a href=\"./?page=getuser&getuser="+unicode(i[0])+"\">"+unicode(i[0]) +"</a></td><td>"+unicode(i[1])+"</td><td>"+unicode(i[2])+"</td></tr>"
 	table+="</table>"
 	print_ui(mainpage % (table,))
-	pass
 
 def userinfopage_ui(form):
 	header_html()
@@ -280,23 +273,8 @@ form = cgi.FieldStorage()
 pages = { "searchkey": mainpage, "getuser": userinfopage, "reset": passwordupdatedpage, "listreset": resetlistpage, "listoverquota": overquotapage, "resetstats": statisticspage}
 functions = { "searchkey": mainpage_ui, "getuser": userinfopage_ui, "reset": passwordupdatedpage_ui, "listreset": resetlistpage_ui, "listoverquota": overquotapage_ui, "resetstats": statisticspage_ui }
 
-if "searchkey" in form:
-	mainpage_ui(form)
-	exit(0)
-if "getuser" in form:
-	userinfopage_ui(form)
-	exit(0)
-if "reset" in form:
-	passwordupdatedpage_ui(form)
-	exit(0)
-if "listreset" in form:
-	resetlistpage_ui(form)
-	exit(0)
-if "listoverquota" in form:
-	overquotapage_ui(form)
-	exit(0)
-if "resetstats" in form:
-	statisticspage_ui(form)
+if "page" in form:
+	functions[form["page"].value](form)
 	exit(0)
 
 header_html()
