@@ -254,11 +254,11 @@ def overquotapage_ui(form):
 		useddisk = int(userinfo["useddiskspace"])
 		image_file = makequota_image(useddisk,quota,True)
 		table+= u"""<tr>
+			<td class=field_value><a href=./?page=getuser&getuser=%s>%s</a></td>
 			<td class=field_value>%s</td>
 			<td class=field_value>%s</td>
 			<td class=field_value>%s</td>
-			<td class=field_value>%s</td>
-		</tr>""" % (i[0],image_file,useddisk,quota)
+		</tr>""" % (i[0],i[0],image_file,useddisk,quota)
 	table += u"</table>"
 	print_ui(overquotapage % table)
 

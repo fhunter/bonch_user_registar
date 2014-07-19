@@ -40,3 +40,10 @@ Crontab entry:
 ```
 */5 *  *   *   *     (/usr/local/sbin/update_quota_base.sh|su - www-data -c "sqlite3 /var/www/selfreg/database.sqlite3")        #update quota db
 ```
+
+Для установки фотографии:
+
+Создать картинку в формате png, размером 100x100 и сделать:
+```
+ sqlite3 database.sqlite3 "update users set photo='`base64 /tmp/fhunter.png`' where username='fhunter'"
+```
