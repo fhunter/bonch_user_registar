@@ -88,6 +88,7 @@ def print_ui(page):
 
 def findusers(key):
 	userlist = []
+	key = key.decode('utf-8')
 	key = '%' + key + '%'
 	t = ( key, key, key )
 	result=db_exec_sql("select username,fio,studnum from users where (username like ?) or (fio like ?) or (studnum like ?)", t)
