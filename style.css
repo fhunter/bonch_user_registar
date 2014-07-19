@@ -32,14 +32,9 @@ div {
   text-align: right;
 }
 
-.edit_button {
-  text-align: left;
-  width: 50%;
-}
-
-.delete_button {
+.edit_delete_button {
   text-align: right;
-  width: 50%;
+  width: 100%;
 }
 
 .field_name {
