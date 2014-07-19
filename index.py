@@ -13,6 +13,12 @@ import gpw
 from my_db import db_exec_sql
 cgitb.enable()
 
+returnbutton=u"<a href=./><button>На главную</button></a>"
+queuebutton=u"<a href=./?page=listreset><button>Очередь сброса</button></a>"
+overquotabutton=u"<a href=./?page=listoverquota><button>С превышением квоты</button></a>"
+statisticsbutton=u"<a href=./?page=resetstats><button>Статистика</button></a>"
+passwordresetbutton=u"<a href=./?page=reset&reset=%s><button>Сбросить пароль</button></a>"
+
 mainpage=u"""
 <h1>Информация о пользователях и сброс паролей</h1>
 <form method="post" action="./?page=searchkey" name="usersearch">
@@ -21,54 +27,67 @@ mainpage=u"""
 </form>
 %s
 <br>
-<a href="./?page=listreset">Очередь сброса паролей</a><br>
-<a href="./?page=listoverquota">Список пользователей с превышением квоты</a><br>
-<a href="./?page=resetstats">Статистика по сбросу пароля</a><br>
-"""
+""" + returnbutton + queuebutton + overquotabutton + statisticsbutton
 
 userinfopage=u"""
 <h1>Информация о пользователе</h1>
-Имя пользователя: %s<br>
-ФИО: %s<br>
-Номер студенческого билета: %s</br>
-Дисковая квота:<br><font color=red>использовано %d Кб</font><br><font color=green>из доступных %d Кб</font><br>
-%s<br>
-Список групп: %s<br>
-Фотография: %s<br>
+<table>
+<tr>
+	<td class=field_name>Имя пользователя:</td>
+	<td class=field_value>%s</td>
+</tr>
+<tr>
+	<td class=field_name>ФИО:</td>
+	<td class=field_value>%s</td>
+</tr>
+<tr>
+	<td class=field_name>Номер студенческого билета:</td>
+	<td class=field_value>%s</td></tr>
+<tr>
+	<td class=field_name>Дисковая квота:</td>
+	<td class=field_value>
+		<table>
+		<tr><td class=field_name>использовано:</td><td class=field_value>%d</td><td class=field_value>Кб</td></tr>
+		<tr><td class=field_name>доступно:</td><td class=field_value>%d</td><td class=field_value>Кб</td></tr>
+		</table><br>%s
+	</td>
+</tr>
+<tr>
+	<td class=field_name>Группы:</td>
+	<td class=field_value>%s</td></tr>
+<tr>
+	<td class=field_name>Фотография:</td>
+	<td class=field_value><center>%s</center></td>
+</tr>
+</table>
 
-<a href="./?page=reset&reset=%s">Сбросить пароль</a>
-"""
+""" + passwordresetbutton + returnbutton + queuebutton + overquotabutton + statisticsbutton
 
 passwordupdatedpage=u"""
 <h1>Смена пароля</h1>
-Пароль заменён на: %s<br>
-Считать пароль телефоном:<br>
-<img src="data:image/png;base64,%s"/>
-<a href="./">Вернуться на основную страницу</a>
-"""
+<table>
+	<tr><td class=field_name>Пароль:</td><td class=field_value><center><b>%s</b></center></td></tr>
+	<tr><td class=field_name>Считать телефоном:</td><td class=field_value><img src="data:image/png;base64,%s"/></td></tr>
+</table>""" + returnbutton + queuebutton + overquotabutton + statisticsbutton
 
 resetlistpage=u"""
 <h1>Очередь на сброс паролей</h1>
-%s
-<a href="./">Вернуться на основную страницу</a>
-"""
+%s """ + returnbutton + queuebutton + overquotabutton + statisticsbutton
 
 overquotapage=u"""
 <h1>Превысившие квоту</h1>
 %s
-<a href="./">Вернуться на основную страницу</a>
-"""
+""" + returnbutton + queuebutton + overquotabutton + statisticsbutton
 
 statisticspage=u"""
 <h1>Статистика сброса пароля</h1>
 %s
-<a href="./">Вернуться на основную страницу</a>
-"""
+""" + returnbutton + queuebutton + overquotabutton + statisticsbutton
 
 errorpage=u"""
 <h1>Error</h1>
 %s
-"""
+""" + returnbutton + queuebutton + overquotabutton + statisticsbutton
 
 def header_html():
 	print "Content-type: text/html"
@@ -173,9 +192,9 @@ def resetpassword(username):
 def mainpage_ui(form):
 	header_html()
 	userlist=findusers(form["searchkey"].value)
-	table = u"<table><tr><td>Имя пользователя</td><td>ФИО</td><td>Номер студ билета</td></tr>"
+	table = u"<table><tr><td class=field_name>Имя пользователя</td><td class=field_name>ФИО</td><td class=field_name>Номер студ билета</td></tr>"
 	for i in userlist:
-		table+=u"<tr><td><a href=\"./?page=getuser&getuser="+unicode(i[0])+"\">"+unicode(i[0]) +"</a></td><td>"+unicode(i[1])+"</td><td>"+unicode(i[2])+"</td></tr>"
+		table+=u"<tr><td class=field_value><a href=\"./?page=getuser&getuser="+unicode(i[0])+"\">"+unicode(i[0]) +"</a></td><td class=field_value>"+unicode(i[1])+"</td><td class=field_value>"+unicode(i[2])+"</td></tr>"
 	table+="</table>"
 	print_ui(mainpage % (table,))
 
@@ -183,10 +202,14 @@ def userinfopage_ui(form):
 	header_html()
 	userinfo = getuser(form["getuser"].value)
 	photo = getphoto(form["getuser"].value)
-	grouptable = u"<table>"
+	grouptable = u"<table><tr>"
+	k=0
 	for i in userinfo["groups"]:
-		grouptable += "<tr><td>" + unicode(i) + "</td></tr>"
-	grouptable += "</table>"
+		grouptable += "<td class=field_value width=20%>" + unicode(i) + "</td>"
+		k = k + 1
+		if k % 5 == 0:
+			grouptable += "</tr><tr>"
+	grouptable += "</tr></table>"
 
 	quota = int(userinfo["quota"])
 	useddisk = int(userinfo["useddiskspace"])
@@ -202,7 +225,7 @@ def passwordupdatedpage_ui(form):
 	if newpassword=="":
 		print_ui(errorpage % u"Пользователь должен быть в группе students" )
 	else:
-		qr = qrcode.QRCode(version=10, error_correction=qrcode.ERROR_CORRECT_L)
+		qr = qrcode.QRCode(version=6, error_correction=qrcode.ERROR_CORRECT_L)
 		qr.add_data(newpassword)
 		qr.make()
 		image = qr.make_image()
@@ -215,26 +238,26 @@ def resetlistpage_ui(form):
 	header_html()
 	results=""
 	data = db_exec_sql('select * from queue where done="false" order by date desc')
-	results = u"<table border=1><tr><td>Имя пользователя</td><td>Время и дата</td><td>Новый пароль</td><td>Сброшено пользователем</td></tr>"
+	results = u"""<table><tr><td class=field_name>Имя пользователя</td><td class=field_name>Время и дата</td><td class=field_name>Новый пароль</td><td class=field_name>Сброшено пользователем</td></tr>"""
 	for i in data:
-		results += "<tr><td>" + i[1] + "</td><td>" + i[3] + "</td><td>" + i[2] + "</td><td>" + i[5] +"</td></tr>" 
+		results += "<tr><td class=field_value>" + i[1] + "</td><td class=field_value>" + i[3] + "</td><td class=field_value>" + i[2] + "</td><td class=field_value>" + i[5] +"</td></tr>" 
 	results += "</table>"
 	print_ui(resetlistpage % results )
 
 def overquotapage_ui(form):
 	header_html()
 	result = db_exec_sql("select username from quota where usedspace > softlimit and softlimit > 0")
-	table=u"<table><tr><td>Пользователь</td><td>Квота</td><td>Использовано</td><td>Доступно</td></tr>"
+	table=u"<table><tr><td class=field_name>Пользователь</td><td class=field_name>Квота</td><td class=field_name>Использовано</td><td class=field_name>Доступно</td></tr>"
 	for i in result:
 		userinfo = getuser(i[0])
 		quota = int(userinfo["quota"])
 		useddisk = int(userinfo["useddiskspace"])
 		image_file = makequota_image(useddisk,quota,True)
 		table+= u"""<tr>
-			<td>%s</td>
-			<td>%s</td>
-			<td>%s</td>
-			<td>%s</td>
+			<td class=field_value>%s</td>
+			<td class=field_value>%s</td>
+			<td class=field_value>%s</td>
+			<td class=field_value>%s</td>
 		</tr>""" % (i[0],image_file,useddisk,quota)
 	table += u"</table>"
 	print_ui(overquotapage % table)
@@ -243,28 +266,29 @@ def statisticspage_ui(form):
 	header_html()
 	result = db_exec_sql("select count() from queue")
 	count = result[0][0]
-	t = u"Всего пароли сброшены: %s раз<br>" % count
+	t = u"<table><tr><td class=field_name>Всего пароли сброшены:</td><td class=field_value> %s раз</td></tr>" % count
 	result = db_exec_sql("select count() from queue where done= ?", ( 'false',))
 	count = result[0][0]
-	t+= u"В очереди на сброс паролей %s запросов<br>" % count
+	t+= u"<tr><td class=field_name>В очереди на сброс паролей</td><td class=field_value> %s запросов</td></tr>" % count
 	result = db_exec_sql("select date from queue where done = ? order by date desc limit 1", ( 'true', ))
 	try:
 		date=result[0][0]
-		t+= u"Последний выполненный запрос пришёл %s <br>" % date
+		t+= u"<tr><td class=field_name>Последний выполненный запрос пришёл</td><td class=field_value> %s" % date
 	except:
-		t+= u"Выполненных запросов не найдено<br>"
+		t+= u"<tr><td class=field_name>Выполненных запросов</td><td class=field_value> не найдено"
+	t+= u"</td></tr></table>"
 	result = db_exec_sql("select username,count(username) from queue group by username order by count(username) desc limit 10")
-	t+=u"<h2>Наиболее часто сбрасываемые пароли</h2><br>"
-	table = u"<table border=1><tr><td>Пользователь</td><td>сброшен</td></tr>"
+	t+=u"<h1>Наиболее часто сбрасываемые пароли</h2><br>"
+	table = u"<table><tr><td class=field_name>Пользователь</td><td class=field_name>сброшен</td></tr>"
 	for i in result:
-		table += u"<tr><td>%s</td><td>%s раз</td></tr>" % (i[0],i[1])
+		table += u"<tr><td class=field_value>%s</td><td class=field_value>%s раз</td></tr>" % (i[0],i[1])
 	table += u"</table>"
 	t+=table
 	result=db_exec_sql("select resetedby,count(resetedby) from queue group by resetedby order by count(resetedby) desc limit 10")
-	t+=u"<h2>Top 10 лаборантов чаще всего сбрасывавших пароли</h2><br>"
-	table = u"<table border=1><tr><td>Пользователь</td><td>сбросил</td></tr>"
+	t+=u"<h1>Top 10 лаборантов чаще всего сбрасывавших пароли</h2><br>"
+	table = u"<table><tr><td class=field_name>Пользователь</td><td class=field_name>сбросил</td></tr>"
 	for i in result:
-		table += u"<tr><td>%s</td><td>%s раз</td></tr>" % (i[0],i[1])
+		table += u"<tr><td class=field_value>%s</td><td class=field_value>%s раз</td></tr>" % (i[0],i[1])
 	table += u"</table>"
 	t+=table
 	print_ui(statisticspage % t)

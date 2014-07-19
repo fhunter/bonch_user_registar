@@ -40,11 +40,14 @@ div {
 .field_name {
   background: red;
   display: table-cell;
+  border-radius: 6px;
 }
 
 .field_value {
   background: yellow;
   display: table-cell;
+  border: 1px dashed black;
+  border-radius: 6px;
 }
 
 
