@@ -1,28 +1,42 @@
 #!/usr/bin/env python
+# coding=utf-8
 import os
 import cgi
 import cgitb
+from my_db import db_exec_sql                                                                                                                                               
 cgitb.enable()
+
+user = os.environ["REMOTE_USER"].split('@')[0]
+result = db_exec_sql("select fio, studnum, photo from users where username=?",(user,))
+fio = ""
+studnum = ""
+photo = ""
+
+if result:
+	(fio,studnum, photo ) = result[0]
+	if fio == None:
+		fio = u""
+	if studnum == None:
+		studnum = u""
+	if photo == None:
+		photo = u""
 
 print "Content: text/html"
 print ""
-print """
-<!doctype html>
 
-<html lang="en">
-<head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-	<title>WebcamJS Test Page</title>
-	<style type="text/css">
-		body { font-family: Helvetica, sans-serif; }
-		h2, h3 { margin-top:0; }
-		form { margin-top: 15px; }
-		form > input { margin-right: 15px; }
-		#results { float:right; margin:20px; padding:20px; border:1px solid; background:#ccc; }
-	</style>
-</head>
+print """<!doctype html><html lang="ru"><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Обновление пользовательских данных</title></head>"""
+
+print """
 <body>
-	<div id="results">Your captured image will appear here...</div>
+<table><tr><td>
+<form method=post>
+	Пользователь %s<br>
+	ФИО: <input name=fio value="%s"></input><br>
+	Номер студ. билета: <input name=studnum value="%s"></input><br>
+	Фото: <input name=photo id=formphoto type=hidden value="%s"></input><br><div id='results'><img src="data:image/png;base64,%s"></div>
+	<input type=submit value="Обновить">
+	</form>
+	</td><td>
 	
 	<h1>WebcamJS Test Page</h1>
 	<h3>Demonstrates simple capture &amp; display</h3>
@@ -36,8 +50,8 @@ print """
 	<script language="JavaScript">
 		Webcam.set({
 			image_format: 'png',
-			dest_width: 133,
-			dest_height: 100,
+			dest_width: 100,
+			dest_height: 75,
 			force_flash: true
 		});
 		Webcam.attach( '#my_camera' );
@@ -45,22 +59,23 @@ print """
 	
 	<!-- A button for taking snaps -->
 	<form>
-		<input type=button value="Take Snapshot" onClick="take_snapshot()">
+		<input type=button value="Фото" onClick="take_snapshot()">
 	</form>
+	</td></tr></table>
 	
 	<!-- Code to handle taking the snapshot and displaying it locally -->
 	<script language="JavaScript">
 		function take_snapshot() {
 			// take snapshot and get image data
 			var data_uri = Webcam.snap();
-			
+
 			// display results in page
-			document.getElementById('results').innerHTML = 
-				'<h2>Here is your image:</h2>' + 
-				'<img src="'+data_uri+'"/>';
+			document.getElementById('results').innerHTML = 	'<img src="'+data_uri+'"/>';
+			document.getElementById('formphoto').value = data_url;
 		}
 	</script>
 	
 </body>
 </html>
-"""
+""" % (user.encode('utf-8'), fio.encode('utf-8'), studnum.encode('utf-8'), photo.encode('utf-8'), photo.encode('utf-8') )
+

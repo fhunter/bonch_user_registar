@@ -2,7 +2,7 @@
 import sqlite3
 
 def db_open():
-	conn = sqlite3.connect("database.sqlite3")
+	conn = sqlite3.connect("../database.sqlite3")
 	conn.execute('pragma foreign_keys = on')
 	return conn
 
