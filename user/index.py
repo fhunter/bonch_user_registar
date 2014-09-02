@@ -6,7 +6,26 @@ import cgitb
 from my_db import db_exec_sql                                                                                                                                               
 cgitb.enable()
 
+def is_post():                                                                                                                                                              
+	if os.environ['REQUEST_METHOD'] == 'POST':                                                                                                                          
+		return True                                                                                                                                                 
+	return False
+
+
 user = os.environ["REMOTE_USER"].split('@')[0]
+
+if is_post():
+	form = cgi.FieldStorage()
+	if "fio" in form:
+		fio = form.getfirst("fio")
+		result = db_exec_sql("update users set fio= ? where username=?",(fio.decode('utf-8'), user,))
+	if "studnum" in form:
+		studnum = form.getfirst("studnum")
+		result = db_exec_sql("update users set studnum= ? where username=?",(studnum.decode('utf-8'), user,))
+	if "photo" in form:
+		photo = form.getfirst("photo").replace("data:image/png;base64,","")
+		result = db_exec_sql("update users set photo = ? where username=?",(photo.decode('utf-8'), user,))
+
 result = db_exec_sql("select fio, studnum, photo from users where username=?",(user,))
 fio = ""
 studnum = ""
@@ -29,11 +48,11 @@ print """<!doctype html><html lang="ru"><head><meta http-equiv="Content-Type" co
 print """
 <body>
 <table><tr><td>
-<form method=post>
+<form method=post id="form" name="form">
 	Пользователь %s<br>
 	ФИО: <input name=fio value="%s"></input><br>
 	Номер студ. билета: <input name=studnum value="%s"></input><br>
-	Фото: <input name=photo id=formphoto type=hidden value="%s"></input><br><div id='results'><img src="data:image/png;base64,%s"></div>
+	Фото: <input name=photo id=photo type=hidden value="%s"></input><br><div id='results'><img src="data:image/png;base64,%s"></div>
 	<input type=submit value="Обновить">
 	</form>
 	</td><td>
@@ -70,8 +89,8 @@ print """
 			var data_uri = Webcam.snap();
 
 			// display results in page
+			document.getElementById('photo').value = data_uri;
 			document.getElementById('results').innerHTML = 	'<img src="'+data_uri+'"/>';
-			document.getElementById('formphoto').value = data_url;
 		}
 	</script>
 	
