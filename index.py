@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # coding=utf-8
 import bottle
-from bottle import route
+from bottle import route, request, template
 import pwd
 import os
 import grp
@@ -25,7 +25,7 @@ overquotapage=u"""
 
 mainpage=u"""
 <h1>Информация о пользователях и сброс паролей</h1>
-<form method="post" action="./?page=searchkey" name="usersearch">
+<form method="post" action="./" name="usersearch">
 Ключ поиска:<input type="text" name="searchkey">
 <input type="submit" value="Submit">
 </form>
@@ -33,9 +33,57 @@ mainpage=u"""
 <br>
 """ + returnbutton + queuebutton + overquotabutton + statisticsbutton
 
+userinfopage=u"""
+<h1>Информация о пользователе</h1>
+<table>
+<tr>
+	<td class=field_name>Имя пользователя:</td>
+	<td class=field_value>%s</td>
+</tr>
+<tr>
+	<td class=field_name>ФИО:</td>
+	<td class=field_value>%s</td>
+</tr>
+<tr>
+	<td class=field_name>Номер студенческого билета:</td>
+	<td class=field_value>%s</td></tr>
+<tr>
+	<td class=field_name>Дисковая квота:</td>
+	<td class=field_value>
+		<table>
+		<tr><td class=field_name>использовано:</td><td class=field_value>%d</td><td class=field_value>Кб</td></tr>
+		<tr><td class=field_name>доступно:</td><td class=field_value>%d</td><td class=field_value>Кб</td></tr>
+		</table><br>%s
+	</td>
+</tr>
+<tr>
+	<td class=field_name>Группы:</td>
+	<td class=field_value>%s</td></tr>
+<tr>
+	<td class=field_name>Фотография:</td>
+	<td class=field_value><center>%s</center></td>
+</tr>
+</table>
+
+""" + passwordresetbutton + returnbutton + queuebutton + overquotabutton + statisticsbutton
+
+def findusers(key):
+	userlist = []
+	key = key.decode('utf-8')
+	key = '%' + key + '%'
+	t = ( key, key, key )
+	result=db_exec_sql("select username,fio,studnum from users where (username like ?) or (fio like ?) or (studnum like ?)", t)
+	return result 
+
 @route('/')
 def main():
-	return mainpage
+	return mainpage % ( '', )
+
+@route('/', method = 'POST')
+def main_search():
+	searchkey = request.forms.get('searchkey')
+	userlist=findusers(searchkey)
+	return mainpage % ( userlist, )
 
 @route('/listoverquota')
 def overquota():
@@ -49,46 +97,17 @@ def listreset():
 def resetstats():
 	return mainpage
 
+@route('/quota/<username:re:[a-zA-Z0-9_]+>')
+def show_userquota(username):
+	return "Unimplemented for" + username
+
+@route('/photo/<username:re:[a-zA-Z0-9_]+>')
+def show_userquota(username):
+	return "Unimplemented for" + username
+
 bottle.run(server=bottle.CGIServer)
 
 
-#cgitb.enable()
-#
-#
-#
-#userinfopage=u"""
-#<h1>Информация о пользователе</h1>
-#<table>
-#<tr>
-#	<td class=field_name>Имя пользователя:</td>
-#	<td class=field_value>%s</td>
-#</tr>
-#<tr>
-#	<td class=field_name>ФИО:</td>
-#	<td class=field_value>%s</td>
-#</tr>
-#<tr>
-#	<td class=field_name>Номер студенческого билета:</td>
-#	<td class=field_value>%s</td></tr>
-#<tr>
-#	<td class=field_name>Дисковая квота:</td>
-#	<td class=field_value>
-#		<table>
-#		<tr><td class=field_name>использовано:</td><td class=field_value>%d</td><td class=field_value>Кб</td></tr>
-#		<tr><td class=field_name>доступно:</td><td class=field_value>%d</td><td class=field_value>Кб</td></tr>
-#		</table><br>%s
-#	</td>
-#</tr>
-#<tr>
-#	<td class=field_name>Группы:</td>
-#	<td class=field_value>%s</td></tr>
-#<tr>
-#	<td class=field_name>Фотография:</td>
-#	<td class=field_value><center>%s</center></td>
-#</tr>
-#</table>
-#
-#""" + passwordresetbutton + returnbutton + queuebutton + overquotabutton + statisticsbutton
 #
 #passwordupdatedpage=u"""
 #<h1>Смена пароля</h1>
@@ -128,13 +147,6 @@ bottle.run(server=bottle.CGIServer)
 #	</body></html>
 #	"""
 #
-#def findusers(key):
-#	userlist = []
-#	key = key.decode('utf-8')
-#	key = '%' + key + '%'
-#	t = ( key, key, key )
-#	result=db_exec_sql("select username,fio,studnum from users where (username like ?) or (fio like ?) or (studnum like ?)", t)
-#	return result 
 #
 #def getuser(username):
 #	user = {}
