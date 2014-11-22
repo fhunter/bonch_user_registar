@@ -2,6 +2,15 @@
 # coding=utf-8
 import bottle
 from bottle import route
+import pwd
+import os
+import grp
+import base64
+from PIL import Image
+import qrcode
+import StringIO
+import gpw
+from my_db import db_exec_sql
 
 returnbutton=u"<a href=./><button>На главную</button></a>"
 queuebutton=u"<a href=./listreset><button>Очередь сброса</button></a>"
@@ -43,17 +52,6 @@ def resetstats():
 bottle.run(server=bottle.CGIServer)
 
 
-#import cgi
-#import cgitb
-#import pwd
-#import os
-#import grp
-#import base64
-#from PIL import Image
-#import qrcode
-#import StringIO
-#import gpw
-#from my_db import db_exec_sql
 #cgitb.enable()
 #
 #
