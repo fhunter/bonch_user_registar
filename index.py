@@ -75,6 +75,28 @@ def findusers(key):
 	result=db_exec_sql("select username,fio,studnum from users where (username like ?) or (fio like ?) or (studnum like ?)", t)
 	return result 
 
+def getuser(username):
+	user = {}
+	try:
+		passwd = pwd.getpwnam(username)
+	except:
+		return user
+	t = ( username, )
+	result=db_exec_sql('select fio,studnum from users where username = ?', t)[0]
+	quotaresult=db_exec_sql('select usedspace,softlimit from quota where username = ?',t)[0]
+	
+	user["fio"] = result[0]
+	user["studnumber"] = result[1]
+	user["quota"] = int(quotaresult[1])
+	user["useddiskspace"] = int(quotaresult[0])
+	user["username"] = passwd[0]
+	user["groups"] = []
+	user["groups"].append(grp.getgrgid(passwd[3])[0])
+	for i in grp.getgrall():
+		if user["username"] in i[3]:
+			user["groups"].append(i[0])
+	return user
+
 @route('/')
 def main():
 	return mainpage % ( '', )
@@ -83,7 +105,11 @@ def main():
 def main_search():
 	searchkey = request.forms.get('searchkey')
 	userlist=findusers(searchkey)
-	return mainpage % ( userlist, )
+	table = u"<table><tr><td class=field_name>Имя пользователя</td><td class=field_name>ФИО</td><td class=field_name>Номер студ билета</td></tr>"
+	for i in userlist:
+		table+=u"<tr><td class=field_value><a href=\"./uinfo/"+unicode(i[0])+"\">"+unicode(i[0]) +"</a></td><td class=field_value>"+unicode(i[1])+"</td><td class=field_value>"+unicode(i[2])+"</td></tr>"
+	table+="</table>"
+	return mainpage % ( table, )
 
 @route('/listoverquota')
 def overquota():
@@ -102,8 +128,29 @@ def show_userquota(username):
 	return "Unimplemented for" + username
 
 @route('/photo/<username:re:[a-zA-Z0-9_]+>')
-def show_userquota(username):
+def show_userphoto(username):
 	return "Unimplemented for" + username
+
+@route('/uinfo/<username:re:[a-zA-Z0-9_]+>')
+def show_userinfo(username):
+	userinfo = getuser(username)
+	photo = show_userphoto(username)
+	grouptable = u"<table><tr>"
+	k=0
+	for i in userinfo["groups"]:
+		grouptable += "<td class=field_value width=20%>" + unicode(i) + "</td>"
+		k = k + 1
+		if k % 5 == 0:
+			grouptable += "</tr><tr>"
+	grouptable += "</tr></table>"
+
+	quota = int(userinfo["quota"])
+	useddisk = int(userinfo["useddiskspace"])
+
+	image_file = show_userquota(username)
+	t= (userinfo["username"], userinfo["fio"], userinfo["studnumber"],useddisk,quota,image_file, grouptable,photo, userinfo["username"])
+	ui = userinfopage % t
+	return ui
 
 bottle.run(server=bottle.CGIServer)
 
@@ -148,27 +195,6 @@ bottle.run(server=bottle.CGIServer)
 #	"""
 #
 #
-#def getuser(username):
-#	user = {}
-#	try:
-#		passwd = pwd.getpwnam(username)
-#	except:
-#		return user
-#	t = ( username, )
-#	result=db_exec_sql('select fio,studnum from users where username = ?', t)[0]
-#	quotaresult=db_exec_sql('select usedspace,softlimit from quota where username = ?',t)[0]
-#	
-#	user["fio"] = result[0]
-#	user["studnumber"] = result[1]
-#	user["quota"] = int(quotaresult[1])
-#	user["useddiskspace"] = int(quotaresult[0])
-#	user["username"] = passwd[0]
-#	user["groups"] = []
-#	user["groups"].append(grp.getgrgid(passwd[3])[0])
-#	for i in grp.getgrall():
-#		if user["username"] in i[3]:
-#			user["groups"].append(i[0])
-#	return user
 #
 #def getphoto(username):
 #	begin="<img src=\"data:image/png;base64,"
