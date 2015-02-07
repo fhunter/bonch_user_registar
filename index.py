@@ -131,6 +131,10 @@ def show_userquota(username):
 def show_userphoto(username):
 	return "Unimplemented for" + username
 
+@route('/user')
+def update_user():
+	return "Unimplemented user update for user " + os.environ["REMOTE_USER"]
+
 @route('/uinfo/<username:re:[a-zA-Z0-9_]+>')
 def show_userinfo(username):
 	userinfo = getuser(username)
@@ -151,6 +155,24 @@ def show_userinfo(username):
 	t= (userinfo["username"], userinfo["fio"], userinfo["studnumber"],useddisk,quota,image_file, grouptable,photo, userinfo["username"])
 	ui = userinfopage % t
 	return ui
+
+@route('/groups')
+def show_groups():
+	table = u"<table border=1><tr><td>Группа</td><td>Пользователи</td><td>Комментарий к группе</td></tr>"
+	for i in grp.getgrall():
+	  	if (i[2] > 1000) and (i[2] <=64000):
+			table += "<tr><td><a href=./?page=showgroup&group=" + unicode(i[0]) + ">" + unicode(i[0]) + "</a></td>"
+			k=len(i[3])
+			table += u"<td>%d</td>" % k
+#			comment = db_exec_sql('select comment from comments where groupname = ?', (i[0],))
+#			if comment == []:
+#				comment = ""
+#			else:
+#				comment = comment[0][0]
+			comment = ""
+			table += "<td>%s</td></tr>" % (comment, )
+	table+="</table>"
+	return table
 
 bottle.run(server=bottle.CGIServer)
 
