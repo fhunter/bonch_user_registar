@@ -231,7 +231,7 @@ def send_image(filename):
 @route('/<filename:re:.*\.swf>')
 def send_image(filename):
 	#FIXME: flash content type
-    return static_file(filename, root='./files/', mimetype='text/javascript')
+    return static_file(filename, root='./files/', mimetype='application/x-shockwave-flash')
 
 bottle.run(server=bottle.CGIServer)
 
