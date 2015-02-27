@@ -129,15 +129,37 @@ def show_userphoto(username):
 @route('/user/')
 @view('userupdate')
 def update_user():
-	#FIXME - this does not work for now
-	return dict(username = os.environ["REMOTE_USER"], fio = "blah", studnum = "123", photo = "")
+	user = os.environ["REMOTE_USER"].split('@')[0]
+	result = db_exec_sql("select fio, studnum, photo from users where username=?",(user,))
+	fio = ""
+	studnum = ""
+	photo = ""
+	if result:
+		(fio,studnum, photo ) = result[0]
+		if fio == None:
+			fio = u""
+		if studnum == None:
+			studnum = u""
+		if photo == None:
+			photo = u""
+	return dict(username = user, fio = fio, studnum = studnum, photo = photo)
 
 @route('/user', method = 'POST')
 @route('/user/', method = 'POST')
 @view('userupdate')
 def update_user():
-	#FIXME - this does not work for now
-	return dict(username = os.environ["REMOTE_USER"], fio = "blah", studnum = "123", photo = "")
+	user = os.environ["REMOTE_USER"].split('@')[0]
+	fio = request.forms.get('fio',None)
+	studnum = request.forms.get('studnum',None)
+	photo = request.forms.get('photo',None)
+	if fio:
+		result = db_exec_sql("update users set fio= ? where username=?",(fio.decode('utf-8'), user,))
+	if studnum:
+		result = db_exec_sql("update users set studnum= ? where username=?",(studnum.decode('utf-8'), user,))
+	if photo:
+		dphoto = photo.replace("data:image/png;base64,","")
+		result = db_exec_sql("update users set photo = ? where username=?",(photo.decode('utf-8'), user,))
+	return dict(username = user, fio = fio, studnum = studnum, photo = dphoto)
 
 @route('/uinfo/<username:re:[a-zA-Z0-9_]+>')
 @view('userinfo')
