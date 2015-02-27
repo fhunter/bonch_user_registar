@@ -18,15 +18,26 @@
 		<table>
 		<tr><td class=field_name>использовано:</td><td class=field_value>{{quotaused}}</td><td class=field_value>Кб</td></tr>
 		<tr><td class=field_name>доступно:</td><td class=field_value>{{quotaavail}}</td><td class=field_value>Кб</td></tr>
-		</table><br>{{quotapicture}}
+		</table><br><img src=./quota/{{username}} />
 	</td>
 </tr>
 <tr>
 	<td class=field_name>Группы:</td>
-	<td class=field_value>{{groups}}</td></tr>
+	<td class=field_value>
+		<table><tr>
+		%k=0
+		%for i in groups:
+			<td class=field_value width=20%>{{unicode(i)}}</td>
+		%k = k + 1
+		%if k % 5 == 0:
+			</tr><tr>
+		%end
+		%end 
+	</tr></table>
+	</td></tr>
 <tr>
 	<td class=field_name>Фотография:</td>
-	<td class=field_value><center>{{photo}}</center></td>
+	<td class=field_value><center><img src=./photo/{{username}} /></center></td>
 </tr>
 </table>
 
