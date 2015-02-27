@@ -58,21 +58,12 @@ def main_search():
 @view('overquota')
 def overquota():
 	result = db_exec_sql("select username from quota where usedspace > softlimit and softlimit > 0")
-#	table=u"<table><tr><td class=field_name>Пользователь</td><td class=field_name>Квота</td><td class=field_name>Использовано</td><td class=field_name>Доступно</td></tr>"
-#	for i in result:
-#		userinfo = getuser(i[0])
-#		quota = int(userinfo["quota"])
-#		useddisk = int(userinfo["useddiskspace"])
-#		image_file = makequota_image(useddisk,quota,True)
-#		table+= u"""<tr>
-#			<td class=field_value><a href=./?page=getuser&getuser=%s>%s</a></td>
-#			<td class=field_value>%s</td>
-#			<td class=field_value>%s</td>
-#			<td class=field_value>%s</td>
-#		</tr>""" % (i[0],i[0],image_file,useddisk,quota)
-#	table += u"</table>"
-#	print_ui(overquotapage % table)
-	return dict(quotas = [])
+	quotas = []
+	for i in result:
+		userinfo = getuser(i[0])
+	    	dictionary = dict(username = i[0], quota = userinfo["quota"], useddisk = userinfo["useddiskspace"])
+		quotas.append(dictionary)
+	return dict(quotas = quotas)
 
 @route('/listreset')
 @view('listreset')
