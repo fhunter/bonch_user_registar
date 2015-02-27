@@ -2,16 +2,30 @@
 
 <table><tr><td>
 <form method=post id="form" name="form">
-	Пользователь {{username}}<br>
-	ФИО: <input name=fio value="{{fio}}"></input><br>
-	Номер студ. билета: <input name=studnum value="{{studnum}}"></input><br>
-	Фото: <input name=photo id=photo type=hidden value="{{photo}}"></input><br><div id='results'><img src="data:image/png;base64,{{photo}}"></div>
+	<table>
+		<tr>
+			<td>Пользователь</td>
+			<td>{{username}}</td>
+		</tr>
+		<tr>
+			<td>ФИО:</td>
+			<td><input name=fio value="{{fio}}"></input></td>
+		</tr>
+		<tr>
+			<td>Номер студ. билета:</td>
+			<td><input name=studnum value="{{studnum}}"></input></td>
+		</tr>
+		<tr>
+			<td>Фото:</td>
+			<td>
+				<input name=photo id=photo type=hidden value="{{photo}}"></input>
+				<div id='results'><img src="data:image/png;base64,{{photo}}"></div>
+			</td>
+		</tr>
+	</table>
 	<input type=submit value="Обновить">
 	</form>
 	</td><td>
-	
-	<h1>WebcamJS Test Page</h1>
-	<h3>Demonstrates simple capture &amp; display</h3>
 	
 	<div id="my_camera" style="width:320px; height:240px;"></div>
 	
