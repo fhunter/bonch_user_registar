@@ -41,5 +41,5 @@
 </tr>
 </table>
 
-%include menu
+%include menu username =username
 %include footer

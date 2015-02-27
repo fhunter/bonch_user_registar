@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # coding=utf-8
 import bottle
-from bottle import route, view, request, template, static_file, response
+from bottle import route, view, request, template, static_file, response, abort
 import pwd
 import os
 import grp
@@ -19,6 +19,24 @@ def findusers(key):
 	t = ( key, key, key )
 	result=db_exec_sql("select username,fio,studnum from users where (username like ?) or (fio like ?) or (studnum like ?)", t)
 	return result 
+
+def resetpassword(username):
+	user={}
+	password=""
+	students_gid=grp.getgrnam("students")[2]
+	try:
+		passwd = pwd.getpwnam(username)
+	except:
+		return ""
+	#check that user is a student and generate password and qrcode from it
+	if passwd[3]==students_gid:
+		password=gpw.GPW(15).password
+		currentuser = os.environ["REMOTE_USER"]
+		t = ( username, password, currentuser )
+		db_exec_sql('insert into queue (username, password, resetedby) values (?, ?, ?)', t)
+	else:
+		password = ""
+	return password
 
 def getuser(username):
 	user = {}
@@ -169,6 +187,21 @@ def show_userinfo(username):
 	useddisk = int(userinfo["useddiskspace"])
 	return dict(username = username, fio = userinfo["fio"], studnumber = userinfo["studnumber"], quotaused= useddisk, quotaavail = quota, groups = userinfo["groups"] )
 
+@route('/reset/<username:re:[a-zA-Z0-9_]+>')
+@view('passwordreset')
+def reset_password(username):
+	newpassword=resetpassword(username)
+	if newpassword=="":
+		abort(401, "Sorry, access denied.")
+	else:
+		qr = qrcode.QRCode(version=6, error_correction=qrcode.ERROR_CORRECT_L)
+		qr.add_data(newpassword)
+		qr.make()
+		image = qr.make_image()
+		image_file = StringIO.StringIO()
+		image.save(image_file,"PNG")
+	return dict(username = username, password = newpassword, qrcode = base64.b64encode(image_file.getvalue()) )
+
 @route('/groups')
 def show_groups():
 	table = u"<table border=1><tr><td>Группа</td><td>Пользователи</td><td>Комментарий к группе</td></tr>"
@@ -202,50 +235,3 @@ def send_image(filename):
 
 bottle.run(server=bottle.CGIServer)
 
-
-#
-#passwordupdatedpage=u"""
-#<h1>Смена пароля</h1>
-#<table>
-#	<tr><td class=field_name>Пароль:</td><td class=field_value><center><b>%s</b></center></td></tr>
-#	<tr><td class=field_name>Считать телефоном:</td><td class=field_value><img src="data:image/png;base64,%s"/></td></tr>
-#</table>""" + returnbutton + queuebutton + overquotabutton + statisticsbutton
-#
-
-#errorpage=u"""
-#<h1>Error</h1>
-#%s
-#""" + returnbutton + queuebutton + overquotabutton + statisticsbutton
-#
-#def resetpassword(username):
-#	user={}
-#	password=""
-#	students_gid=grp.getgrnam("students")[2]
-#	try:
-#		passwd = pwd.getpwnam(username)
-#	except:
-#		return ""
-#	#check that user is a student and generate password and qrcode from it
-#	if passwd[3]==students_gid:
-#		password=gpw.GPW(15).password
-#		currentuser = os.environ["REMOTE_USER"]
-#		t = ( username, password, currentuser )
-#		db_exec_sql('insert into queue (username, password, resetedby) values (?, ?, ?)', t)
-#	else:
-#		password = ""
-#	return password
-#
-#def passwordupdatedpage_ui(form):
-#	header_html()
-#	newpassword=resetpassword(form["reset"].value)
-#	if newpassword=="":
-#		print_ui(errorpage % u"Пользователь должен быть в группе students" )
-#	else:
-#		qr = qrcode.QRCode(version=6, error_correction=qrcode.ERROR_CORRECT_L)
-#		qr.add_data(newpassword)
-#		qr.make()
-#		image = qr.make_image()
-#		image_file = StringIO.StringIO()
-#		image.save(image_file,"PNG")
-#		ui = passwordupdatedpage % (newpassword, base64.b64encode(image_file.getvalue()),)
-#		print_ui(ui)
