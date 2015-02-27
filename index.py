@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # coding=utf-8
 import bottle
-from bottle import route, view, request, template
+from bottle import route, view, request, template, static_file, response
 import pwd
 import os
 import grp
@@ -45,70 +45,116 @@ def getuser(username):
 @route('/')
 @view('mainpage')
 def main():
-	return dict(query = '')
+	return dict()
 
 @route('/', method = 'POST')
 @view('mainpage')
 def main_search():
 	searchkey = request.forms.get('searchkey')
 	userlist=findusers(searchkey)
-	table = u"<table><tr><td class=field_name>Имя пользователя</td><td class=field_name>ФИО</td><td class=field_name>Номер студ билета</td></tr>"
-	for i in userlist:
-		table+=u"<tr><td class=field_value><a href=\"./uinfo/"+unicode(i[0])+"\">"+unicode(i[0]) +"</a></td><td class=field_value>"+unicode(i[1])+"</td><td class=field_value>"+unicode(i[2])+"</td></tr>"
-	table+="</table>"
-	return dict(query = '')
+	return dict(query = userlist)
 
 @route('/listoverquota')
 @view('overquota')
 def overquota():
-	return dict()
+	result = db_exec_sql("select username from quota where usedspace > softlimit and softlimit > 0")
+#	table=u"<table><tr><td class=field_name>Пользователь</td><td class=field_name>Квота</td><td class=field_name>Использовано</td><td class=field_name>Доступно</td></tr>"
+#	for i in result:
+#		userinfo = getuser(i[0])
+#		quota = int(userinfo["quota"])
+#		useddisk = int(userinfo["useddiskspace"])
+#		image_file = makequota_image(useddisk,quota,True)
+#		table+= u"""<tr>
+#			<td class=field_value><a href=./?page=getuser&getuser=%s>%s</a></td>
+#			<td class=field_value>%s</td>
+#			<td class=field_value>%s</td>
+#			<td class=field_value>%s</td>
+#		</tr>""" % (i[0],i[0],image_file,useddisk,quota)
+#	table += u"</table>"
+#	print_ui(overquotapage % table)
+	return dict(quotas = [])
 
 @route('/listreset')
 @view('listreset')
 def listreset():
-	return dict()
+	data = db_exec_sql('select * from queue where done="false" order by date desc')
+	return dict(data = data)
 
 @route('/resetstats')
 @view('statistics')
 def resetstats():
-	return dict()
+	result = db_exec_sql("select count() from queue")
+	count = result[0][0]
+	result = db_exec_sql("select count() from queue where done= ?", ( 'false',))
+	requests = result[0][0]
+	result = db_exec_sql("select date from queue where done = ? order by date desc limit 1", ( 'true', ))
+	try:
+		date=result[0][0]
+	except:
+		date=None
+	frequency = db_exec_sql("select username,count(username) from queue group by username order by count(username) desc limit 10")
+	topresets = db_exec_sql("select resetedby,count(resetedby) from queue group by resetedby order by count(resetedby) desc limit 10")
+	return dict(count = count, requests = requests, date = date, frequency = frequency, topresets = topresets)
 
 @route('/quota/<username:re:[a-zA-Z0-9_]+>')
-@view('qoutainfo')
 def show_userquota(username):
-	return "Unimplemented for" + username
+	response.set_header('Content-type', 'image/png')
+	userinfo = getuser(username)
+	quota = int(userinfo["quota"])
+	useddisk = int(userinfo["useddiskspace"])
+	image_file = StringIO.StringIO()
+	image = Image.new("RGB",(514,34), "white")
+	image.im.paste((0,0,0),(0,0,514,34))
+	image.im.paste((255,255,255),(1,1,513,33))
+	image.im.paste((0,255,0),(1,17,int(1+(512.0/max(quota,useddisk))*quota),17+16))
+	image.im.paste((255,0,0),(1,1,int(1+(512.0/max(quota,useddisk))*useddisk),1+16))
+#		image = Image.new("RGB",(514,18), "white")
+#		image.im.paste((0,0,0),(0,0,514,18))
+#		image.im.paste((255,255,255),(1,1,513,17))
+#		image.im.paste((0,255,0),(1,9,int(1+(512.0/max(quota,used))*quota),9+8))
+#		image.im.paste((255,0,0),(1,1,int(1+(512.0/max(quota,used))*used),1+8))
+	image.save(image_file, "PNG")
+	return image_file.getvalue()
 
 @route('/photo/<username:re:[a-zA-Z0-9_]+>')
-@view('userphoto')
 def show_userphoto(username):
-	return "Unimplemented for" + username
+	response.set_header('Content-type', 'image/png')
+	empty="""
+		iVBORw0KGgoAAAANSUhEUgAAAGQAAABkAQAAAABYmaj5AAAAAmJLR0QAAd2KE6QAAAAZSURBVDjLY/
+		iPBD4wjPJGeaO8Ud4oj8Y8AL7rCVzcsTKLAAAAAElFTkSuQmCC
+	"""
+	t = ( username, )
+	photo=db_exec_sql('select photo from users where username = ?', t)[0]
+	if photo == None:
+		photo=empty
+	else:
+		photo=photo[0]
+	if photo==None:
+		photo=empty
+	image = photo.decode('base64')
+	return image
 
 @route('/user')
+@route('/user/')
 @view('userupdate')
 def update_user():
-	return "Unimplemented user update for user " + os.environ["REMOTE_USER"]
+	#FIXME - this does not work for now
+	return dict(username = os.environ["REMOTE_USER"], fio = "blah", studnum = "123", photo = "")
+
+@route('/user', method = 'POST')
+@route('/user/', method = 'POST')
+@view('userupdate')
+def update_user():
+	#FIXME - this does not work for now
+	return dict(username = os.environ["REMOTE_USER"], fio = "blah", studnum = "123", photo = "")
 
 @route('/uinfo/<username:re:[a-zA-Z0-9_]+>')
 @view('userinfo')
 def show_userinfo(username):
 	userinfo = getuser(username)
-	photo = show_userphoto(username)
-	grouptable = u"<table><tr>"
-	k=0
-	for i in userinfo["groups"]:
-		grouptable += "<td class=field_value width=20%>" + unicode(i) + "</td>"
-		k = k + 1
-		if k % 5 == 0:
-			grouptable += "</tr><tr>"
-	grouptable += "</tr></table>"
-
 	quota = int(userinfo["quota"])
 	useddisk = int(userinfo["useddiskspace"])
-
-	image_file = show_userquota(username)
-	t= (userinfo["username"], userinfo["fio"], userinfo["studnumber"],useddisk,quota,image_file, grouptable,photo, userinfo["username"])
-	ui = userinfopage % t
-	return ui
+	return dict(username = username, fio = userinfo["fio"], studnumber = userinfo["studnumber"], quotaused= useddisk, quotaavail = quota, groups = userinfo["groups"] )
 
 @route('/groups')
 def show_groups():
@@ -128,6 +174,10 @@ def show_groups():
 	table+="</table>"
 	return table
 
+@route('/<filename:re:.*\.css>')
+def send_image(filename):
+    return static_file(filename, root='./', mimetype='text/css')
+
 bottle.run(server=bottle.CGIServer)
 
 
@@ -139,10 +189,6 @@ bottle.run(server=bottle.CGIServer)
 #	<tr><td class=field_name>Считать телефоном:</td><td class=field_value><img src="data:image/png;base64,%s"/></td></tr>
 #</table>""" + returnbutton + queuebutton + overquotabutton + statisticsbutton
 #
-#resetlistpage=u"""
-#<h1>Очередь на сброс паролей</h1>
-#%s """ + returnbutton + queuebutton + overquotabutton + statisticsbutton
-#
 
 #statisticspage=u"""
 #<h1>Статистика сброса пароля</h1>
@@ -153,56 +199,6 @@ bottle.run(server=bottle.CGIServer)
 #<h1>Error</h1>
 #%s
 #""" + returnbutton + queuebutton + overquotabutton + statisticsbutton
-#
-#def print_ui(page):
-#	print """
-#	<html><head><meta http-equiv="Content-Type" content="text/html;charset=utf8">
-#        <link rel="stylesheet" type="text/css" href="style.css" />
-#	<title>Управление пользователями</title>
-#	</head><body>
-#	"""
-#	print page.encode('utf-8')
-#	print """
-#	</body></html>
-#	"""
-#
-#
-#
-#def getphoto(username):
-#	begin="<img src=\"data:image/png;base64,"
-#	end="\">"
-#	empty="""
-#		iVBORw0KGgoAAAANSUhEUgAAAGQAAABkAQAAAABYmaj5AAAAAmJLR0QAAd2KE6QAAAAZSURBVDjLY/
-#		iPBD4wjPJGeaO8Ud4oj8Y8AL7rCVzcsTKLAAAAAElFTkSuQmCC
-#	"""
-#	t = ( username, )
-#	photo=db_exec_sql('select photo from users where username = ?', t)[0]
-#	if photo == None:
-#		photo=empty
-#	else:
-#		photo=photo[0]
-#	if photo==None:
-#		photo=empty
-#	return begin + photo + end
-#
-#def makequota_image(used,quota,small=False):
-#	image_file = StringIO.StringIO()
-#	if small:
-#		image = Image.new("RGB",(514,18), "white")
-#		image.im.paste((0,0,0),(0,0,514,18))
-#		image.im.paste((255,255,255),(1,1,513,17))
-#		image.im.paste((0,255,0),(1,9,int(1+(512.0/max(quota,used))*quota),9+8))
-#		image.im.paste((255,0,0),(1,1,int(1+(512.0/max(quota,used))*used),1+8))
-#	else:
-#		image = Image.new("RGB",(514,34), "white")
-#		image.im.paste((0,0,0),(0,0,514,34))
-#		image.im.paste((255,255,255),(1,1,513,33))
-#		image.im.paste((0,255,0),(1,17,int(1+(512.0/max(quota,used))*quota),17+16))
-#		image.im.paste((255,0,0),(1,1,int(1+(512.0/max(quota,used))*used),1+16))
-#	image.save(image_file, "PNG")
-#	image_file = base64.b64encode(image_file.getvalue())
-#	image_file = "<img src=\"data:image/png;base64,"+image_file+"\"/>"
-#	return image_file
 #
 #def resetpassword(username):
 #	user={}
@@ -222,36 +218,6 @@ bottle.run(server=bottle.CGIServer)
 #		password = ""
 #	return password
 #
-#def mainpage_ui(form):
-#	header_html()
-#	userlist=findusers(form["searchkey"].value)
-#	table = u"<table><tr><td class=field_name>Имя пользователя</td><td class=field_name>ФИО</td><td class=field_name>Номер студ билета</td></tr>"
-#	for i in userlist:
-#		table+=u"<tr><td class=field_value><a href=\"./?page=getuser&getuser="+unicode(i[0])+"\">"+unicode(i[0]) +"</a></td><td class=field_value>"+unicode(i[1])+"</td><td class=field_value>"+unicode(i[2])+"</td></tr>"
-#	table+="</table>"
-#	print_ui(mainpage % (table,))
-#
-#def userinfopage_ui(form):
-#	header_html()
-#	userinfo = getuser(form["getuser"].value)
-#	photo = getphoto(form["getuser"].value)
-#	grouptable = u"<table><tr>"
-#	k=0
-#	for i in userinfo["groups"]:
-#		grouptable += "<td class=field_value width=20%>" + unicode(i) + "</td>"
-#		k = k + 1
-#		if k % 5 == 0:
-#			grouptable += "</tr><tr>"
-#	grouptable += "</tr></table>"
-#
-#	quota = int(userinfo["quota"])
-#	useddisk = int(userinfo["useddiskspace"])
-#
-#	image_file = makequota_image(useddisk,quota)
-#	t= (userinfo["username"], userinfo["fio"], userinfo["studnumber"],useddisk,quota,image_file, grouptable,photo, userinfo["username"])
-#	ui = userinfopage % t
-#	print_ui(ui)
-#
 #def passwordupdatedpage_ui(form):
 #	header_html()
 #	newpassword=resetpassword(form["reset"].value)
@@ -266,16 +232,6 @@ bottle.run(server=bottle.CGIServer)
 #		image.save(image_file,"PNG")
 #		ui = passwordupdatedpage % (newpassword, base64.b64encode(image_file.getvalue()),)
 #		print_ui(ui)
-#
-#def resetlistpage_ui(form):
-#	header_html()
-#	results=""
-#	data = db_exec_sql('select * from queue where done="false" order by date desc')
-#	results = u"""<table><tr><td class=field_name>Имя пользователя</td><td class=field_name>Время и дата</td><td class=field_name>Новый пароль</td><td class=field_name>Сброшено пользователем</td></tr>"""
-#	for i in data:
-#		results += "<tr><td class=field_value>" + i[1] + "</td><td class=field_value>" + i[3] + "</td><td class=field_value>" + i[2] + "</td><td class=field_value>" + i[5] +"</td></tr>" 
-#	results += "</table>"
-#	print_ui(resetlistpage % results )
 #
 #def overquotapage_ui(form):
 #	header_html()
@@ -294,47 +250,3 @@ bottle.run(server=bottle.CGIServer)
 #		</tr>""" % (i[0],i[0],image_file,useddisk,quota)
 #	table += u"</table>"
 #	print_ui(overquotapage % table)
-#
-#def statisticspage_ui(form):
-#	header_html()
-#	result = db_exec_sql("select count() from queue")
-#	count = result[0][0]
-#	t = u"<table><tr><td class=field_name>Всего пароли сброшены:</td><td class=field_value> %s раз</td></tr>" % count
-#	result = db_exec_sql("select count() from queue where done= ?", ( 'false',))
-#	count = result[0][0]
-#	t+= u"<tr><td class=field_name>В очереди на сброс паролей</td><td class=field_value> %s запросов</td></tr>" % count
-#	result = db_exec_sql("select date from queue where done = ? order by date desc limit 1", ( 'true', ))
-#	try:
-#		date=result[0][0]
-#		t+= u"<tr><td class=field_name>Последний выполненный запрос пришёл</td><td class=field_value> %s" % date
-#	except:
-#		t+= u"<tr><td class=field_name>Выполненных запросов</td><td class=field_value> не найдено"
-#	t+= u"</td></tr></table>"
-#	result = db_exec_sql("select username,count(username) from queue group by username order by count(username) desc limit 10")
-#	t+=u"<h1>Наиболее часто сбрасываемые пароли</h2><br>"
-#	table = u"<table><tr><td class=field_name>Пользователь</td><td class=field_name>сброшен</td></tr>"
-#	for i in result:
-#		table += u"<tr><td class=field_value>%s</td><td class=field_value>%s раз</td></tr>" % (i[0],i[1])
-#	table += u"</table>"
-#	t+=table
-#	result=db_exec_sql("select resetedby,count(resetedby) from queue group by resetedby order by count(resetedby) desc limit 10")
-#	t+=u"<h1>Top 10 лаборантов чаще всего сбрасывавших пароли</h2><br>"
-#	table = u"<table><tr><td class=field_name>Пользователь</td><td class=field_name>сбросил</td></tr>"
-#	for i in result:
-#		table += u"<tr><td class=field_value>%s</td><td class=field_value>%s раз</td></tr>" % (i[0],i[1])
-#	table += u"</table>"
-#	t+=table
-#	print_ui(statisticspage % t)
-#
-#form = cgi.FieldStorage()
-#
-#pages = { "searchkey": mainpage, "getuser": userinfopage, "reset": passwordupdatedpage, "listreset": resetlistpage, "listoverquota": overquotapage, "resetstats": statisticspage}
-#functions = { "searchkey": mainpage_ui, "getuser": userinfopage_ui, "reset": passwordupdatedpage_ui, "listreset": resetlistpage_ui, "listoverquota": overquotapage_ui, "resetstats": statisticspage_ui }
-#
-#if "page" in form:
-#	functions[form["page"].value](form)
-#	exit(0)
-#
-#header_html()
-#print_ui(mainpage % "")
-#exit(0)
