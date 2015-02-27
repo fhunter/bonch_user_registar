@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # coding=utf-8
 import bottle
-from bottle import route, request, template
+from bottle import route, view, request, template
 import pwd
 import os
 import grp
@@ -11,61 +11,6 @@ import qrcode
 import StringIO
 import gpw
 from my_db import db_exec_sql
-
-returnbutton=u"<a href=./><button>На главную</button></a>"
-queuebutton=u"<a href=./listreset><button>Очередь сброса</button></a>"
-overquotabutton=u"<a href=./listoverquota><button>С превышением квоты</button></a>"
-statisticsbutton=u"<a href=./resetstats><button>Статистика</button></a>"
-passwordresetbutton=u"<a href=./reset/%s><button>Сбросить пароль</button></a>"
-
-overquotapage=u"""
-<h1>Превысившие квоту</h1>
-%s
-""" + returnbutton + queuebutton + overquotabutton + statisticsbutton
-
-mainpage=u"""
-<h1>Информация о пользователях и сброс паролей</h1>
-<form method="post" action="./" name="usersearch">
-Ключ поиска:<input type="text" name="searchkey">
-<input type="submit" value="Submit">
-</form>
-%s
-<br>
-""" + returnbutton + queuebutton + overquotabutton + statisticsbutton
-
-userinfopage=u"""
-<h1>Информация о пользователе</h1>
-<table>
-<tr>
-	<td class=field_name>Имя пользователя:</td>
-	<td class=field_value>%s</td>
-</tr>
-<tr>
-	<td class=field_name>ФИО:</td>
-	<td class=field_value>%s</td>
-</tr>
-<tr>
-	<td class=field_name>Номер студенческого билета:</td>
-	<td class=field_value>%s</td></tr>
-<tr>
-	<td class=field_name>Дисковая квота:</td>
-	<td class=field_value>
-		<table>
-		<tr><td class=field_name>использовано:</td><td class=field_value>%d</td><td class=field_value>Кб</td></tr>
-		<tr><td class=field_name>доступно:</td><td class=field_value>%d</td><td class=field_value>Кб</td></tr>
-		</table><br>%s
-	</td>
-</tr>
-<tr>
-	<td class=field_name>Группы:</td>
-	<td class=field_value>%s</td></tr>
-<tr>
-	<td class=field_name>Фотография:</td>
-	<td class=field_value><center>%s</center></td>
-</tr>
-</table>
-
-""" + passwordresetbutton + returnbutton + queuebutton + overquotabutton + statisticsbutton
 
 def findusers(key):
 	userlist = []
@@ -98,10 +43,12 @@ def getuser(username):
 	return user
 
 @route('/')
+@view('mainpage')
 def main():
-	return mainpage % ( '', )
+	return dict(query = '')
 
 @route('/', method = 'POST')
+@view('mainpage')
 def main_search():
 	searchkey = request.forms.get('searchkey')
 	userlist=findusers(searchkey)
@@ -109,33 +56,40 @@ def main_search():
 	for i in userlist:
 		table+=u"<tr><td class=field_value><a href=\"./uinfo/"+unicode(i[0])+"\">"+unicode(i[0]) +"</a></td><td class=field_value>"+unicode(i[1])+"</td><td class=field_value>"+unicode(i[2])+"</td></tr>"
 	table+="</table>"
-	return mainpage % ( table, )
+	return dict(query = '')
 
 @route('/listoverquota')
+@view('overquota')
 def overquota():
-	return overquotapage
+	return dict()
 
 @route('/listreset')
+@view('listreset')
 def listreset():
-	return mainpage
+	return dict()
 
 @route('/resetstats')
+@view('statistics')
 def resetstats():
-	return mainpage
+	return dict()
 
 @route('/quota/<username:re:[a-zA-Z0-9_]+>')
+@view('qoutainfo')
 def show_userquota(username):
 	return "Unimplemented for" + username
 
 @route('/photo/<username:re:[a-zA-Z0-9_]+>')
+@view('userphoto')
 def show_userphoto(username):
 	return "Unimplemented for" + username
 
 @route('/user')
+@view('userupdate')
 def update_user():
 	return "Unimplemented user update for user " + os.environ["REMOTE_USER"]
 
 @route('/uinfo/<username:re:[a-zA-Z0-9_]+>')
+@view('userinfo')
 def show_userinfo(username):
 	userinfo = getuser(username)
 	photo = show_userphoto(username)
@@ -199,10 +153,6 @@ bottle.run(server=bottle.CGIServer)
 #<h1>Error</h1>
 #%s
 #""" + returnbutton + queuebutton + overquotabutton + statisticsbutton
-#
-#def header_html():
-#	print "Content-type: text/html"
-#	print ""
 #
 #def print_ui(page):
 #	print """
