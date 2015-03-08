@@ -38,7 +38,7 @@
 			image_format: 'png',
 			dest_width: 100,
 			dest_height: 75,
-			force_flash: true
+			force_flash: false
 		});
 		Webcam.attach( '#my_camera' );
 	</script>

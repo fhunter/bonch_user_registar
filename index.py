@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # coding=utf-8
 import bottle
-from bottle import route, view, request, template, static_file, response, abort
+from bottle import route, view, request, template, static_file, response, abort, redirect
 import pwd
 import os
 import grp
@@ -203,22 +203,44 @@ def reset_password(username):
 	return dict(username = username, password = newpassword, qrcode = base64.b64encode(image_file.getvalue()) )
 
 @route('/groups')
+@view('groups')
 def show_groups():
-	table = u"<table border=1><tr><td>Группа</td><td>Пользователи</td><td>Комментарий к группе</td></tr>"
+	grouplist = []
 	for i in grp.getgrall():
 	  	if (i[2] > 1000) and (i[2] <=64000):
-			table += "<tr><td><a href=./?page=showgroup&group=" + unicode(i[0]) + ">" + unicode(i[0]) + "</a></td>"
-			k=len(i[3])
-			table += u"<td>%d</td>" % k
+			grouplist.append((i[0],i[3],"",))
 #			comment = db_exec_sql('select comment from comments where groupname = ?', (i[0],))
 #			if comment == []:
 #				comment = ""
 #			else:
 #				comment = comment[0][0]
-			comment = ""
-			table += "<td>%s</td></tr>" % (comment, )
-	table+="</table>"
-	return table
+	return dict(data = grouplist)
+
+#TODO
+@route('/groups/<groupname>')
+@view('groupview')
+def show_group(groupname):
+	group = grp.getgrnam(groupname)
+	users = []
+	if (group[2] > 1000) and (group[2] <=64000):
+		users = group[3]
+	return dict(groupname=groupname,users=users, )
+
+#TODO
+@route('/groups/add/<groupname>')
+def add_group(groupname):
+	redirect('../../groups')
+
+#TODO
+@route('/groups/del/<groupname>')
+def del_group(groupname):
+	redirect('../../groups')
+
+#TODO
+@route('/groupstats')
+@view('groupstats')
+def show_group_queues():
+	return dict()
 
 @route('/<filename:re:.*\.css>')
 def send_image(filename):
