@@ -1,8 +1,9 @@
 %include header
 <h1>Просмотр группы</h1>
 <h2>{{groupname}}</h2>
-{{users}}
+%for i in users:
+<a href=./uinfo/{{i}}>{{i}}</a>
+%end
 <br>
-<a href=./groups/delete/{{groupname}}><button>Удалить</button></a><br>
 %include menu
 %include footer

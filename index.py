@@ -232,11 +232,6 @@ def add_group(groupname):
 	redirect('../../groups')
 
 #TODO
-@route('/groups/del/<groupname>')
-def del_group(groupname):
-	redirect('../../groups')
-
-#TODO
 @route('/groupstats')
 @view('groupstats')
 def show_group_queues():
