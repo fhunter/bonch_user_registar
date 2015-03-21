@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # coding=utf-8
-import cgi
-import cgitb
+import bottle
+from bottle import route, view, request, template, static_file, response, abort, redirect
 import pwd
 import os
 import grp
@@ -11,99 +11,6 @@ import qrcode
 import StringIO
 import gpw
 from my_db import db_exec_sql
-cgitb.enable()
-
-returnbutton=u"<a href=./><button>На главную</button></a>"
-queuebutton=u"<a href=./?page=listreset><button>Очередь сброса</button></a>"
-overquotabutton=u"<a href=./?page=listoverquota><button>С превышением квоты</button></a>"
-statisticsbutton=u"<a href=./?page=resetstats><button>Статистика</button></a>"
-passwordresetbutton=u"<a href=./?page=reset&reset=%s><button>Сбросить пароль</button></a>"
-
-mainpage=u"""
-<h1>Информация о пользователях и сброс паролей</h1>
-<form method="post" action="./?page=searchkey" name="usersearch">
-Ключ поиска:<input type="text" name="searchkey">
-<input type="submit" value="Submit">
-</form>
-%s
-<br>
-""" + returnbutton + queuebutton + overquotabutton + statisticsbutton
-
-userinfopage=u"""
-<h1>Информация о пользователе</h1>
-<table>
-<tr>
-	<td class=field_name>Имя пользователя:</td>
-	<td class=field_value>%s</td>
-</tr>
-<tr>
-	<td class=field_name>ФИО:</td>
-	<td class=field_value>%s</td>
-</tr>
-<tr>
-	<td class=field_name>Номер студенческого билета:</td>
-	<td class=field_value>%s</td></tr>
-<tr>
-	<td class=field_name>Дисковая квота:</td>
-	<td class=field_value>
-		<table>
-		<tr><td class=field_name>использовано:</td><td class=field_value>%d</td><td class=field_value>Кб</td></tr>
-		<tr><td class=field_name>доступно:</td><td class=field_value>%d</td><td class=field_value>Кб</td></tr>
-		</table><br>%s
-	</td>
-</tr>
-<tr>
-	<td class=field_name>Группы:</td>
-	<td class=field_value>%s</td></tr>
-<tr>
-	<td class=field_name>Фотография:</td>
-	<td class=field_value><center>%s</center></td>
-</tr>
-</table>
-
-""" + passwordresetbutton + returnbutton + queuebutton + overquotabutton + statisticsbutton
-
-passwordupdatedpage=u"""
-<h1>Смена пароля</h1>
-<table>
-	<tr><td class=field_name>Пароль:</td><td class=field_value><center><b>%s</b></center></td></tr>
-	<tr><td class=field_name>Считать телефоном:</td><td class=field_value><img src="data:image/png;base64,%s"/></td></tr>
-</table>""" + returnbutton + queuebutton + overquotabutton + statisticsbutton
-
-resetlistpage=u"""
-<h1>Очередь на сброс паролей</h1>
-%s """ + returnbutton + queuebutton + overquotabutton + statisticsbutton
-
-overquotapage=u"""
-<h1>Превысившие квоту</h1>
-%s
-""" + returnbutton + queuebutton + overquotabutton + statisticsbutton
-
-statisticspage=u"""
-<h1>Статистика сброса пароля</h1>
-%s
-""" + returnbutton + queuebutton + overquotabutton + statisticsbutton
-
-errorpage=u"""
-<h1>Error</h1>
-%s
-""" + returnbutton + queuebutton + overquotabutton + statisticsbutton
-
-def header_html():
-	print "Content-type: text/html"
-	print ""
-
-def print_ui(page):
-	print """
-	<html><head><meta http-equiv="Content-Type" content="text/html;charset=utf8">
-        <link rel="stylesheet" type="text/css" href="style.css" />
-	<title>Управление пользователями</title>
-	</head><body>
-	"""
-	print page.encode('utf-8')
-	print """
-	</body></html>
-	"""
 
 def findusers(key):
 	userlist = []
@@ -112,6 +19,24 @@ def findusers(key):
 	t = ( key, key, key )
 	result=db_exec_sql("select username,fio,studnum from users where (username like ?) or (fio like ?) or (studnum like ?)", t)
 	return result 
+
+def resetpassword(username):
+	user={}
+	password=""
+	students_gid=grp.getgrnam("students")[2]
+	try:
+		passwd = pwd.getpwnam(username)
+	except:
+		return ""
+	#check that user is a student and generate password and qrcode from it
+	if passwd[3]==students_gid:
+		password=gpw.GPW(15).password
+		currentuser = os.environ["REMOTE_USER"]
+		t = ( username, password, currentuser )
+		db_exec_sql('insert into queue (username, password, resetedby) values (?, ?, ?)', t)
+	else:
+		password = ""
+	return password
 
 def getuser(username):
 	user = {}
@@ -135,9 +60,74 @@ def getuser(username):
 			user["groups"].append(i[0])
 	return user
 
-def getphoto(username):
-	begin="<img src=\"data:image/png;base64,"
-	end="\">"
+@route('/')
+@view('mainpage')
+def main():
+	return dict()
+
+@route('/', method = 'POST')
+@view('mainpage')
+def main_search():
+	searchkey = request.forms.get('searchkey')
+	userlist=findusers(searchkey)
+	return dict(query = userlist)
+
+@route('/listoverquota')
+@view('overquota')
+def overquota():
+	result = db_exec_sql("select username from quota where usedspace > softlimit and softlimit > 0")
+	quotas = []
+	for i in result:
+		userinfo = getuser(i[0])
+	    	dictionary = dict(username = i[0], quota = userinfo["quota"], useddisk = userinfo["useddiskspace"])
+		quotas.append(dictionary)
+	return dict(quotas = quotas)
+
+@route('/listreset')
+@view('listreset')
+def listreset():
+	data = db_exec_sql('select * from queue where done="false" order by date desc')
+	return dict(data = data)
+
+@route('/resetstats')
+@view('statistics')
+def resetstats():
+	result = db_exec_sql("select count() from queue")
+	count = result[0][0]
+	result = db_exec_sql("select count() from queue where done= ?", ( 'false',))
+	requests = result[0][0]
+	result = db_exec_sql("select date from queue where done = ? order by date desc limit 1", ( 'true', ))
+	try:
+		date=result[0][0]
+	except:
+		date=None
+	frequency = db_exec_sql("select username,count(username) from queue group by username order by count(username) desc limit 10")
+	topresets = db_exec_sql("select resetedby,count(resetedby) from queue group by resetedby order by count(resetedby) desc limit 10")
+	return dict(count = count, requests = requests, date = date, frequency = frequency, topresets = topresets)
+
+@route('/quota/<username:re:[a-zA-Z0-9_]+>')
+def show_userquota(username):
+	response.set_header('Content-type', 'image/png')
+	userinfo = getuser(username)
+	quota = int(userinfo["quota"])
+	useddisk = int(userinfo["useddiskspace"])
+	image_file = StringIO.StringIO()
+	image = Image.new("RGB",(514,34), "white")
+	image.im.paste((0,0,0),(0,0,514,34))
+	image.im.paste((255,255,255),(1,1,513,33))
+	image.im.paste((0,255,0),(1,17,int(1+(512.0/max(quota,useddisk))*quota),17+16))
+	image.im.paste((255,0,0),(1,1,int(1+(512.0/max(quota,useddisk))*useddisk),1+16))
+#		image = Image.new("RGB",(514,18), "white")
+#		image.im.paste((0,0,0),(0,0,514,18))
+#		image.im.paste((255,255,255),(1,1,513,17))
+#		image.im.paste((0,255,0),(1,9,int(1+(512.0/max(quota,used))*quota),9+8))
+#		image.im.paste((255,0,0),(1,1,int(1+(512.0/max(quota,used))*used),1+8))
+	image.save(image_file, "PNG")
+	return image_file.getvalue()
+
+@route('/photo/<username:re:[a-zA-Z0-9_]+>')
+def show_userphoto(username):
+	response.set_header('Content-type', 'image/png')
 	empty="""
 		iVBORw0KGgoAAAANSUhEUgAAAGQAAABkAQAAAABYmaj5AAAAAmJLR0QAAd2KE6QAAAAZSURBVDjLY/
 		iPBD4wjPJGeaO8Ud4oj8Y8AL7rCVzcsTKLAAAAAElFTkSuQmCC
@@ -150,80 +140,59 @@ def getphoto(username):
 		photo=photo[0]
 	if photo==None:
 		photo=empty
-	return begin + photo + end
+	image = photo.decode('base64')
+	return image
 
-def makequota_image(used,quota,small=False):
-	image_file = StringIO.StringIO()
-	if small:
-		image = Image.new("RGB",(514,18), "white")
-		image.im.paste((0,0,0),(0,0,514,18))
-		image.im.paste((255,255,255),(1,1,513,17))
-		image.im.paste((0,255,0),(1,9,int(1+(512.0/max(quota,used))*quota),9+8))
-		image.im.paste((255,0,0),(1,1,int(1+(512.0/max(quota,used))*used),1+8))
-	else:
-		image = Image.new("RGB",(514,34), "white")
-		image.im.paste((0,0,0),(0,0,514,34))
-		image.im.paste((255,255,255),(1,1,513,33))
-		image.im.paste((0,255,0),(1,17,int(1+(512.0/max(quota,used))*quota),17+16))
-		image.im.paste((255,0,0),(1,1,int(1+(512.0/max(quota,used))*used),1+16))
-	image.save(image_file, "PNG")
-	image_file = base64.b64encode(image_file.getvalue())
-	image_file = "<img src=\"data:image/png;base64,"+image_file+"\"/>"
-	return image_file
+@route('/user')
+@route('/user/')
+@view('userupdate')
+def update_user():
+	user = os.environ["REMOTE_USER"].split('@')[0]
+	result = db_exec_sql("select fio, studnum, photo from users where username=?",(user,))
+	fio = ""
+	studnum = ""
+	photo = ""
+	if result:
+		(fio,studnum, photo ) = result[0]
+		if fio == None:
+			fio = u""
+		if studnum == None:
+			studnum = u""
+		if photo == None:
+			photo = u""
+	return dict(username = user, fio = fio, studnum = studnum, photo = photo)
 
-def resetpassword(username):
-	user={}
-	password=""
-	students_gid=grp.getgrnam("students")[2]
-	try:
-		passwd = pwd.getpwnam(username)
-	except:
-		return ""
-	#check that user is a student and generate password and qrcode from it
-	if passwd[3]==students_gid:
-		password=gpw.GPW(15).password
-		currentuser = os.environ["REMOTE_USER"]
-		t = ( username, password, currentuser )
-		db_exec_sql('insert into queue (username, password, resetedby) values (?, ?, ?)', t)
-	else:
-		password = ""
-	return password
+@route('/user', method = 'POST')
+@route('/user/', method = 'POST')
+@view('userupdate')
+def update_user():
+	user = os.environ["REMOTE_USER"].split('@')[0]
+	fio = request.forms.get('fio',None)
+	studnum = request.forms.get('studnum',None)
+	photo = request.forms.get('photo',None)
+	if fio:
+		result = db_exec_sql("update users set fio= ? where username=?",(fio.decode('utf-8'), user,))
+	if studnum:
+		result = db_exec_sql("update users set studnum= ? where username=?",(studnum.decode('utf-8'), user,))
+	if photo:
+		dphoto = photo.replace("data:image/png;base64,","")
+		result = db_exec_sql("update users set photo = ? where username=?",(photo.decode('utf-8'), user,))
+	return dict(username = user, fio = fio, studnum = studnum, photo = dphoto)
 
-def mainpage_ui(form):
-	header_html()
-	userlist=findusers(form["searchkey"].value)
-	table = u"<table><tr><td class=field_name>Имя пользователя</td><td class=field_name>ФИО</td><td class=field_name>Номер студ билета</td></tr>"
-	for i in userlist:
-		table+=u"<tr><td class=field_value><a href=\"./?page=getuser&getuser="+unicode(i[0])+"\">"+unicode(i[0]) +"</a></td><td class=field_value>"+unicode(i[1])+"</td><td class=field_value>"+unicode(i[2])+"</td></tr>"
-	table+="</table>"
-	print_ui(mainpage % (table,))
-
-def userinfopage_ui(form):
-	header_html()
-	userinfo = getuser(form["getuser"].value)
-	photo = getphoto(form["getuser"].value)
-	grouptable = u"<table><tr>"
-	k=0
-	for i in userinfo["groups"]:
-		grouptable += "<td class=field_value width=20%>" + unicode(i) + "</td>"
-		k = k + 1
-		if k % 5 == 0:
-			grouptable += "</tr><tr>"
-	grouptable += "</tr></table>"
-
+@route('/uinfo/<username:re:[a-zA-Z0-9_]+>')
+@view('userinfo')
+def show_userinfo(username):
+	userinfo = getuser(username)
 	quota = int(userinfo["quota"])
 	useddisk = int(userinfo["useddiskspace"])
+	return dict(username = username, fio = userinfo["fio"], studnumber = userinfo["studnumber"], quotaused= useddisk, quotaavail = quota, groups = userinfo["groups"] )
 
-	image_file = makequota_image(useddisk,quota)
-	t= (userinfo["username"], userinfo["fio"], userinfo["studnumber"],useddisk,quota,image_file, grouptable,photo, userinfo["username"])
-	ui = userinfopage % t
-	print_ui(ui)
-
-def passwordupdatedpage_ui(form):
-	header_html()
-	newpassword=resetpassword(form["reset"].value)
+@route('/reset/<username:re:[a-zA-Z0-9_]+>')
+@view('passwordreset')
+def reset_password(username):
+	newpassword=resetpassword(username)
 	if newpassword=="":
-		print_ui(errorpage % u"Пользователь должен быть в группе students" )
+		abort(401, "Sorry, access denied.")
 	else:
 		qr = qrcode.QRCode(version=6, error_correction=qrcode.ERROR_CORRECT_L)
 		qr.add_data(newpassword)
@@ -231,77 +200,55 @@ def passwordupdatedpage_ui(form):
 		image = qr.make_image()
 		image_file = StringIO.StringIO()
 		image.save(image_file,"PNG")
-		ui = passwordupdatedpage % (newpassword, base64.b64encode(image_file.getvalue()),)
-		print_ui(ui)
+	return dict(username = username, password = newpassword, qrcode = base64.b64encode(image_file.getvalue()) )
 
-def resetlistpage_ui(form):
-	header_html()
-	results=""
-	data = db_exec_sql('select * from queue where done="false" order by date desc')
-	results = u"""<table><tr><td class=field_name>Имя пользователя</td><td class=field_name>Время и дата</td><td class=field_name>Новый пароль</td><td class=field_name>Сброшено пользователем</td></tr>"""
-	for i in data:
-		results += "<tr><td class=field_value>" + i[1] + "</td><td class=field_value>" + i[3] + "</td><td class=field_value>" + i[2] + "</td><td class=field_value>" + i[5] +"</td></tr>" 
-	results += "</table>"
-	print_ui(resetlistpage % results )
+@route('/groups')
+@view('groups')
+def show_groups():
+	grouplist = []
+	for i in grp.getgrall():
+	  	if (i[2] > 1000) and (i[2] <=64000):
+			grouplist.append((i[0],i[3],"",))
+#			comment = db_exec_sql('select comment from comments where groupname = ?', (i[0],))
+#			if comment == []:
+#				comment = ""
+#			else:
+#				comment = comment[0][0]
+	return dict(data = grouplist)
 
-def overquotapage_ui(form):
-	header_html()
-	result = db_exec_sql("select username from quota where usedspace > softlimit and softlimit > 0")
-	table=u"<table><tr><td class=field_name>Пользователь</td><td class=field_name>Квота</td><td class=field_name>Использовано</td><td class=field_name>Доступно</td></tr>"
-	for i in result:
-		userinfo = getuser(i[0])
-		quota = int(userinfo["quota"])
-		useddisk = int(userinfo["useddiskspace"])
-		image_file = makequota_image(useddisk,quota,True)
-		table+= u"""<tr>
-			<td class=field_value><a href=./?page=getuser&getuser=%s>%s</a></td>
-			<td class=field_value>%s</td>
-			<td class=field_value>%s</td>
-			<td class=field_value>%s</td>
-		</tr>""" % (i[0],i[0],image_file,useddisk,quota)
-	table += u"</table>"
-	print_ui(overquotapage % table)
+#TODO
+@route('/groups/<groupname>')
+@view('groupview')
+def show_group(groupname):
+	group = grp.getgrnam(groupname)
+	users = []
+	if (group[2] > 1000) and (group[2] <=64000):
+		users = group[3]
+	return dict(groupname=groupname,users=users, )
 
-def statisticspage_ui(form):
-	header_html()
-	result = db_exec_sql("select count() from queue")
-	count = result[0][0]
-	t = u"<table><tr><td class=field_name>Всего пароли сброшены:</td><td class=field_value> %s раз</td></tr>" % count
-	result = db_exec_sql("select count() from queue where done= ?", ( 'false',))
-	count = result[0][0]
-	t+= u"<tr><td class=field_name>В очереди на сброс паролей</td><td class=field_value> %s запросов</td></tr>" % count
-	result = db_exec_sql("select date from queue where done = ? order by date desc limit 1", ( 'true', ))
-	try:
-		date=result[0][0]
-		t+= u"<tr><td class=field_name>Последний выполненный запрос пришёл</td><td class=field_value> %s" % date
-	except:
-		t+= u"<tr><td class=field_name>Выполненных запросов</td><td class=field_value> не найдено"
-	t+= u"</td></tr></table>"
-	result = db_exec_sql("select username,count(username) from queue group by username order by count(username) desc limit 10")
-	t+=u"<h1>Наиболее часто сбрасываемые пароли</h2><br>"
-	table = u"<table><tr><td class=field_name>Пользователь</td><td class=field_name>сброшен</td></tr>"
-	for i in result:
-		table += u"<tr><td class=field_value>%s</td><td class=field_value>%s раз</td></tr>" % (i[0],i[1])
-	table += u"</table>"
-	t+=table
-	result=db_exec_sql("select resetedby,count(resetedby) from queue group by resetedby order by count(resetedby) desc limit 10")
-	t+=u"<h1>Top 10 лаборантов чаще всего сбрасывавших пароли</h2><br>"
-	table = u"<table><tr><td class=field_name>Пользователь</td><td class=field_name>сбросил</td></tr>"
-	for i in result:
-		table += u"<tr><td class=field_value>%s</td><td class=field_value>%s раз</td></tr>" % (i[0],i[1])
-	table += u"</table>"
-	t+=table
-	print_ui(statisticspage % t)
+#TODO
+@route('/groups/add/<groupname>')
+def add_group(groupname):
+	redirect('../../groups')
 
-form = cgi.FieldStorage()
+#TODO
+@route('/groupstats')
+@view('groupstats')
+def show_group_queues():
+	return dict()
 
-pages = { "searchkey": mainpage, "getuser": userinfopage, "reset": passwordupdatedpage, "listreset": resetlistpage, "listoverquota": overquotapage, "resetstats": statisticspage}
-functions = { "searchkey": mainpage_ui, "getuser": userinfopage_ui, "reset": passwordupdatedpage_ui, "listreset": resetlistpage_ui, "listoverquota": overquotapage_ui, "resetstats": statisticspage_ui }
+@route('/<filename:re:.*\.css>')
+def send_image(filename):
+    return static_file(filename, root='./files/', mimetype='text/css')
 
-if "page" in form:
-	functions[form["page"].value](form)
-	exit(0)
+@route('/<filename:re:.*\.js>')
+def send_image(filename):
+    return static_file(filename, root='./files/', mimetype='text/javascript')
 
-header_html()
-print_ui(mainpage % "")
-exit(0)
+@route('/<filename:re:.*\.swf>')
+def send_image(filename):
+	#FIXME: flash content type
+    return static_file(filename, root='./files/', mimetype='application/x-shockwave-flash')
+
+bottle.run(server=bottle.CGIServer)
+

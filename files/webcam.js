@@ -48,7 +48,8 @@ var Webcam = {
 		live: null,
 		uploadcomplete: null,
 		uploadprogress: null,
-		error: function(msg) { alert("Webcam.js Error: " + msg); }
+		error: function(msg) { //alert("Webcam.js Error: " + msg); 
+			}
 	}, // callback hook functions
 	
 	init: function() {
