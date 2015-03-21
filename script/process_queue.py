@@ -34,6 +34,12 @@ if queue != None:
 					print >>sys.stderr, "Child returned", retcode
 		except OSError as e:
 			print >>sys.stderr, "Execution failed:", e
+
+		commandline=u"""kadmin -p automator/admin -k -t /etc/krb5.keytab -q "modprinc +needchange %s" """ % (i[1], )
+		try:
+			retcode = subprocess.call(commandline, shell=True)
+		except OSError as e:
+			print >>sys.stderr, "Execution failed:", e
 	conn.commit()
 	conn.close()
 

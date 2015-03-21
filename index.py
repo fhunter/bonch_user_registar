@@ -30,7 +30,7 @@ def resetpassword(username):
 		return ""
 	#check that user is a student and generate password and qrcode from it
 	if passwd[3]==students_gid:
-		password=gpw.GPW(15).password
+		password=gpw.GPW(10).password
 		currentuser = os.environ["REMOTE_USER"]
 		t = ( username, password, currentuser )
 		db_exec_sql('insert into queue (username, password, resetedby) values (?, ?, ?)', t)
