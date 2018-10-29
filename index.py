@@ -17,7 +17,7 @@ def findusers(key):
 	key = key.decode('utf-8')
 	key = '%' + key + '%'
 	t = ( key, key, key )
-	result=db_exec_sql("select username,fio,studnum from users where (username like ?) or (fio like ?) or (studnum like ?)", t)
+	result=db_exec_sql("select username,fio,studnum from users where (username like %s) or (fio like %s) or (studnum like %s)", t)
 	return result 
 
 def resetpassword(username):
@@ -33,7 +33,7 @@ def resetpassword(username):
 		password=gpw.GPW(10).password
 		currentuser = os.environ["REMOTE_USER"]
 		t = ( username, password, currentuser )
-		db_exec_sql('insert into queue (username, password, resetedby) values (?, ?, ?)', t)
+		db_exec_sql('insert into queue (username, password, resetedby) values (%s, %s, %s)', t)
 	else:
 		password = ""
 	return password
@@ -45,8 +45,8 @@ def getuser(username):
 	except:
 		return user
 	t = ( username, )
-	result=db_exec_sql('select fio,studnum from users where username = ?', t)[0]
-	quotaresult=db_exec_sql('select usedspace,softlimit from quota where username = ?',t)[0]
+	result=db_exec_sql("select fio,studnum from users where username = %s", t)[0]
+	quotaresult=db_exec_sql("select usedspace,softlimit from quota where username = %s",t)[0]
 	
 	user["fio"] = result[0]
 	user["studnumber"] = result[1]
@@ -86,17 +86,17 @@ def overquota():
 @route('/listreset')
 @view('listreset')
 def listreset():
-	data = db_exec_sql('select * from queue where done="false" order by date desc')
+	data = db_exec_sql('select * from queue where done=False order by date desc')
 	return dict(data = data)
 
 @route('/resetstats')
 @view('statistics')
 def resetstats():
-	result = db_exec_sql("select count() from queue")
+	result = db_exec_sql("select count(*) from queue")
 	count = result[0][0]
-	result = db_exec_sql("select count() from queue where done= ?", ( 'false',))
+	result = db_exec_sql("select count(*) from queue where done= False")
 	requests = result[0][0]
-	result = db_exec_sql("select date from queue where done = ? order by date desc limit 1", ( 'true', ))
+	result = db_exec_sql("select date from queue where done = True order by date desc limit 1")
 	try:
 		date=result[0][0]
 	except:
@@ -133,7 +133,7 @@ def show_userphoto(username):
 		iPBD4wjPJGeaO8Ud4oj8Y8AL7rCVzcsTKLAAAAAElFTkSuQmCC
 	"""
 	t = ( username, )
-	photo=db_exec_sql('select photo from users where username = ?', t)[0]
+	photo=db_exec_sql('select photo from users where username = %s', t)[0]
 	if photo == None:
 		photo=empty
 	else:
@@ -148,7 +148,7 @@ def show_userphoto(username):
 @view('userupdate')
 def update_user():
 	user = os.environ["REMOTE_USER"].split('@')[0]
-	result = db_exec_sql("select fio, studnum, photo from users where username=?",(user,))
+	result = db_exec_sql("select fio, studnum, photo from users where username=%s",(user,))
 	fio = ""
 	studnum = ""
 	photo = ""
@@ -171,12 +171,12 @@ def update_user():
 	studnum = request.forms.get('studnum',None)
 	photo = request.forms.get('photo',None)
 	if fio:
-		result = db_exec_sql("update users set fio= ? where username=?",(fio.decode('utf-8'), user,))
+		result = db_exec_sql("update users set fio= %s where username=%s",(fio.decode('utf-8'), user,))
 	if studnum:
-		result = db_exec_sql("update users set studnum= ? where username=?",(studnum.decode('utf-8'), user,))
+		result = db_exec_sql("update users set studnum= %s where username=%s",(studnum.decode('utf-8'), user,))
 	if photo:
 		dphoto = photo.replace("data:image/png;base64,","")
-		result = db_exec_sql("update users set photo = ? where username=?",(photo.decode('utf-8'), user,))
+		result = db_exec_sql("update users set photo = %s where username=%s",(photo.decode('utf-8'), user,))
 	return dict(username = user, fio = fio, studnum = studnum, photo = dphoto)
 
 @route('/uinfo/<username:re:[a-zA-Z0-9_]+>')
