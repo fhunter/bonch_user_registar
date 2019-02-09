@@ -14,5 +14,8 @@
 %end
 </table>
 <br>
+Quota table = {{counts['quota']}} </br>
+Users table = {{counts['users']}} </br>
+Passwd file = {{counts['passwd']}} </br>
 %include menu
 %include footer

@@ -72,6 +72,11 @@ def main_search():
 	userlist=findusers(searchkey)
 	return dict(query = userlist)
 
+@route('/process/quota')  #, method = 'POST') - TODO: make it so, after debug . Should be available only from 127.0.0.1
+def receive_quota_update():
+	""" Method takes in lines of 'username used_blocks quota' """
+	return ""
+
 @route('/listoverquota')
 @view('overquota')
 def overquota():
@@ -206,15 +211,45 @@ def reset_password(username):
 @view('groups')
 def show_groups():
 	grouplist = []
+	counts = {}
+	counts['passwd'] = 0
+	counts['users'] = 0
+	counts['quota'] = 0
+	userlist = []
+	for i in pwd.getpwall():
+	        if (i.pw_uid >=1000) and (i.pw_uid <=64000):
+			userlist.append(i.pw_name)
+	counts['passwd'] = len(userlist)
+	result = db_exec_sql('select count(username) from quota')[0][0]
+	counts['quota'] = result
+	result = db_exec_sql('select count(username) from users')[0][0]
+	counts['users'] = result
+	#cleanup begin
+	#remove absent from passwd
+	for i in db_exec_sql('select username from quota'):
+		if i[0] not in userlist:
+			#extra, remove it
+			#print i[0]
+			db_exec_sql('delete from quota where username = %s', (i[0],))
+	for i in db_exec_sql('select username from users'):
+		if i[0] not in userlist:
+			#extra, remove it
+			#print i[0]
+			db_exec_sql('delete from users where username = %s', (i[0],))
+	#insert missing
+	for i in userlist:
+		result = db_exec_sql('select username from quota where username = %s', (i,))
+		if len(result) == 0:
+		    db_exec_sql('insert into quota (username, usedspace, softlimit) values ( %s, %s, %s)', (i, 0,0))
+	for i in userlist:
+		result = db_exec_sql('select username from users where username = %s', (i,))
+		if len(result) == 0:
+		    db_exec_sql('insert into users (username, fio, studnum) values ( %s, %s, %s)', (i, '',''))
+	#cleanup end
 	for i in grp.getgrall():
 	  	if (i[2] > 1000) and (i[2] <=64000):
 			grouplist.append((i[0],i[3],"",))
-#			comment = db_exec_sql('select comment from comments where groupname = ?', (i[0],))
-#			if comment == []:
-#				comment = ""
-#			else:
-#				comment = comment[0][0]
-	return dict(data = grouplist)
+	return dict(data = grouplist, counts = counts)
 
 #TODO
 @route('/groups/<groupname>')
