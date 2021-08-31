@@ -30,7 +30,7 @@ def resetpassword(username):
 		return ""
 	#check that user is a student and generate password and qrcode from it
 	if passwd[3]==students_gid:
-		password=gpw.GPW(10).password
+		password=gpw.GPW(6).password
 		currentuser = os.environ["REMOTE_USER"]
 		t = ( username, password, currentuser )
 		db_exec_sql('insert into queue (username, password, resetedby) values (%s, %s, %s)', t)
@@ -110,7 +110,7 @@ def resetstats():
 	topresets = db_exec_sql("select resetedby,count(resetedby) from queue group by resetedby order by count(resetedby) desc limit 10")
 	return dict(count = count, requests = requests, date = date, frequency = frequency, topresets = topresets)
 
-@route('/quota/<username:re:[a-zA-Z0-9_]+>')
+@route('/quota/<username:re:[a-zA-Z0-9_][a-zA-Z0-9_.]+>')
 def show_userquota(username):
 	response.set_header('Content-type', 'image/png')
 	userinfo = getuser(username)
@@ -130,7 +130,7 @@ def show_userquota(username):
 	image.save(image_file, "PNG")
 	return image_file.getvalue()
 
-@route('/photo/<username:re:[a-zA-Z0-9_]+>')
+@route('/photo/<username:re:[a-zA-Z0-9_][a-zA-Z0-9_.]+>')
 def show_userphoto(username):
 	response.set_header('Content-type', 'image/png')
 	empty="""
@@ -184,7 +184,7 @@ def update_user():
 		result = db_exec_sql("update users set photo = %s where username=%s",(photo.decode('utf-8'), user,))
 	return dict(username = user, fio = fio, studnum = studnum, photo = dphoto)
 
-@route('/uinfo/<username:re:[a-zA-Z0-9_]+>')
+@route('/uinfo/<username:re:[a-zA-Z0-9_][a-zA-Z0-9_.]+>')
 @view('userinfo')
 def show_userinfo(username):
 	userinfo = getuser(username)
@@ -192,7 +192,7 @@ def show_userinfo(username):
 	useddisk = int(userinfo["useddiskspace"])
 	return dict(username = username, fio = userinfo["fio"], studnumber = userinfo["studnumber"], quotaused= useddisk, quotaavail = quota, groups = userinfo["groups"] )
 
-@route('/reset/<username:re:[a-zA-Z0-9_]+>')
+@route('/reset/<username:re:[a-zA-Z0-9_][a-zA-Z0-9_.]+>')
 @view('passwordreset')
 def reset_password(username):
 	newpassword=resetpassword(username)
