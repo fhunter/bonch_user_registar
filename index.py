@@ -190,7 +190,7 @@ def show_userinfo(username):
 	userinfo = getuser(username)
 	quota = int(userinfo["quota"])
 	useddisk = int(userinfo["useddiskspace"])
-	return dict(username = username, fio = userinfo["fio"], studnumber = userinfo["studnumber"], quotaused= useddisk, quotaavail = quota, groups = userinfo["groups"] )
+	return dict(username = username, fio = userinfo["fio"], studnumber = userinfo["studnumber"], quotaused= useddisk, quotaavail = quota, groups = userinfo["groups"], issued=False, logged_in=False )
 
 @route('/reset/<username:re:[a-zA-Z0-9_][a-zA-Z0-9_.]+>')
 @view('passwordreset')

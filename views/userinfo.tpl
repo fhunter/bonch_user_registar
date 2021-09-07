@@ -37,7 +37,13 @@
 	</td></tr>
 <tr>
 	<td class=field_name>Фотография:</td>
-	<td class=field_value><center><img src=./photo/{{username}} /></center></td>
+	<td class=field_value><center><img src=./photo/{{username}} /></center></td></tr>
+<tr>
+	<td class=field_name>Выдан:</td>
+	<td class=field_value>{{issued}}</td></tr>
+<tr>
+	<td class=field_name>Вход выполнен:</td>
+	<td class=field_value>{{logged_in}}</td>
 </tr>
 </table>
 
