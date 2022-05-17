@@ -82,6 +82,11 @@ def receive_quota_update():
 	""" Method takes in lines of 'username used_blocks quota' """
 	return ""
 
+@route('/process/newuser', method = 'POST') #- TODO: make it so, after debug . Should be available only from 127.0.0.1
+def receive_users_update():
+	""" Method takes in json array of dictionaries: username/password """
+	return ""
+
 @route('/listoverquota')
 @view('overquota')
 def overquota():
