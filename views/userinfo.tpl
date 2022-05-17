@@ -16,8 +16,8 @@
 	<td class=field_name>Дисковая квота:</td>
 	<td class=field_value>
 		<table>
-		<tr><td class=field_name>использовано:</td><td class=field_value>{{quotaused}}</td><td class=field_value>Кб</td></tr>
-		<tr><td class=field_name>доступно:</td><td class=field_value>{{quotaavail}}</td><td class=field_value>Кб</td></tr>
+		<tr><td class=field_name>использовано:</td><td class=field_value align=right>{{quotaused}}</td><td class=field_value>Кб</td></tr>
+		<tr><td class=field_name>доступно:</td><td class=field_value align=right>{{quotaavail}}</td><td class=field_value>Кб</td></tr>
 		</table><br><img src=./quota/{{username}} />
 	</td>
 </tr>
@@ -40,10 +40,25 @@
 	<td class=field_value><center><img src=./photo/{{username}} /></center></td></tr>
 <tr>
 	<td class=field_name>Выдан:</td>
-	<td class=field_value>{{issued}}</td></tr>
+	<td class=field_value>N/A</td></tr>
 <tr>
 	<td class=field_name>Вход выполнен:</td>
-	<td class=field_value>{{logged_in}}</td>
+	<td class=field_value>N/A</td>
+</tr>
+<tr>
+    <td class=field_name>Последний пароль:</td>
+    <td class=field_value>
+        <table>
+            <tr><td class=field_name>Пароль:</td><td class=field_value>{{password}}</td></tr>
+            <tr><td class=field_name>Применён:</td><td class=field_value align=center>
+            %if applied:
+            ✅
+            %else:
+            ❎
+            %end
+            </td></tr>
+        </table>
+    </td>
 </tr>
 </table>
 

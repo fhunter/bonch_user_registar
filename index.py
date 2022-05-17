@@ -47,7 +47,12 @@ def getuser(username):
 	t = ( username, )
 	result=db_exec_sql("select fio,studnum from users where username = %s", t)[0]
 	quotaresult=db_exec_sql("select usedspace,softlimit from quota where username = %s",t)[0]
-	
+	queue = db_exec_sql("select password, done, date from queue where username=%s order by date desc limit 1", (username,))
+	user["password"]=""
+	user["applied"]=False
+	if queue:
+		user["password"]=queue[0][0]
+		user["applied"]=queue[0][1]
 	user["fio"] = result[0]
 	user["studnumber"] = result[1]
 	user["quota"] = int(quotaresult[1])
@@ -84,7 +89,7 @@ def overquota():
 	quotas = []
 	for i in result:
 		userinfo = getuser(i[0])
-	    	dictionary = dict(username = i[0], quota = userinfo["quota"], useddisk = userinfo["useddiskspace"])
+		dictionary = dict(username = i[0], quota = userinfo["quota"], useddisk = userinfo["useddiskspace"])
 		quotas.append(dictionary)
 	return dict(quotas = quotas)
 
@@ -190,7 +195,7 @@ def show_userinfo(username):
 	userinfo = getuser(username)
 	quota = int(userinfo["quota"])
 	useddisk = int(userinfo["useddiskspace"])
-	return dict(username = username, fio = userinfo["fio"], studnumber = userinfo["studnumber"], quotaused= useddisk, quotaavail = quota, groups = userinfo["groups"], issued=False, logged_in=False )
+	return dict(username = username, fio = userinfo["fio"], studnumber = userinfo["studnumber"], quotaused= useddisk, quotaavail = quota, groups = userinfo["groups"], issued=False, logged_in=False, password = userinfo["password"], applied = userinfo["applied"] )
 
 @route('/reset/<username:re:[a-zA-Z0-9_][a-zA-Z0-9_.]+>')
 @view('passwordreset')
@@ -217,7 +222,7 @@ def show_groups():
 	counts['quota'] = 0
 	userlist = []
 	for i in pwd.getpwall():
-	        if (i.pw_uid >=1000) and (i.pw_uid <=64000):
+		if (i.pw_uid >=1000) and (i.pw_uid <=64000):
 			userlist.append(i.pw_name)
 	counts['passwd'] = len(userlist)
 	result = db_exec_sql('select count(username) from quota')[0][0]
@@ -240,11 +245,11 @@ def show_groups():
 	for i in userlist:
 		result = db_exec_sql('select username from quota where username = %s', (i,))
 		if len(result) == 0:
-		    db_exec_sql('insert into quota (username, usedspace, softlimit) values ( %s, %s, %s)', (i, 0,0))
+			db_exec_sql('insert into quota (username, usedspace, softlimit) values ( %s, %s, %s)', (i, 0,0))
 	for i in userlist:
 		result = db_exec_sql('select username from users where username = %s', (i,))
 		if len(result) == 0:
-		    db_exec_sql('insert into users (username, fio, studnum) values ( %s, %s, %s)', (i, '',''))
+			db_exec_sql('insert into users (username, fio, studnum) values ( %s, %s, %s)', (i, '',''))
 	#cleanup end
 	for i in grp.getgrall():
 	  	if (i[2] > 1000) and (i[2] <=64000):
@@ -259,7 +264,11 @@ def show_group(groupname):
 	users = []
 	if (group[2] > 1000) and (group[2] <=64000):
 		users = group[3]
-	return dict(groupname=groupname,users=users, )
+	data_list = []
+	for i in users:
+		userinfo=getuser(i)
+		data_list.append(userinfo)
+	return dict(groupname=groupname,users=data_list, )
 
 #TODO
 @route('/groups/add/<groupname>')
@@ -274,16 +283,16 @@ def show_group_queues():
 
 @route('/<filename:re:.*\.css>')
 def send_image(filename):
-    return static_file(filename, root='./files/', mimetype='text/css')
+	return static_file(filename, root='./files/', mimetype='text/css')
 
 @route('/<filename:re:.*\.js>')
 def send_image(filename):
-    return static_file(filename, root='./files/', mimetype='text/javascript')
+	return static_file(filename, root='./files/', mimetype='text/javascript')
 
 @route('/<filename:re:.*\.swf>')
 def send_image(filename):
 	#FIXME: flash content type
-    return static_file(filename, root='./files/', mimetype='application/x-shockwave-flash')
+	return static_file(filename, root='./files/', mimetype='application/x-shockwave-flash')
 
 bottle.run(server=bottle.CGIServer)
 
