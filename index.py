@@ -77,15 +77,31 @@ def main_search():
 	userlist=findusers(searchkey)
 	return dict(query = userlist)
 
-@route('/process/quota')  #, method = 'POST') - TODO: make it so, after debug . Should be available only from 127.0.0.1
+@route('/process/quota', method = 'POST') #- TODO: make it so, after debug . Should be available only from 127.0.0.1
 def receive_quota_update():
 	""" Method takes in lines of 'username used_blocks quota' """
-	return ""
+	data = request.json
+	if isinstance(data, list):
+		for i in data:
+			username = i['username']
+			quota = int(i['quota'])
+			used  = int(i['used'])
+			result = db_exec_sql("insert into quota (username,usedspace,softlimit) values ( %s, '%s', '%s' ) on duplicate key update usedspace='%s', softlimit='%s';", (username, used, quota, used, quota) )
+	else:
+		username = data['username']
+		quota = int(data['quota'])
+		used  = int(data['used'])
+		result = db_exec_sql("insert into quota (username,usedspace,softlimit) values ( %s, '%s', '%s' ) on duplicate key update usedspace='%s', softlimit='%s';", (username, used, quota, used, quota) )
+	currentuser = os.environ["REMOTE_USER"]
+	return dict(currentuser=currentuser)
 
 @route('/process/newuser', method = 'POST') #- TODO: make it so, after debug . Should be available only from 127.0.0.1
 def receive_users_update():
 	""" Method takes in json array of dictionaries: username/password """
-	return ""
+	data = request.json
+	password = resetpassword(data['username'])
+	currentuser = os.environ["REMOTE_USER"]
+	return dict(username=data['username'],password=password,currentuser=currentuser)
 
 @route('/listoverquota')
 @view('overquota')
