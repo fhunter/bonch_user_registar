@@ -18,7 +18,7 @@
 		<table>
 		<tr><td class=field_name>использовано:</td><td class=field_value align=right>{{quotaused}}</td><td class=field_value>Кб</td></tr>
 		<tr><td class=field_name>доступно:</td><td class=field_value align=right>{{quotaavail}}</td><td class=field_value>Кб</td></tr>
-		</table><br><img src=./quota/{{username}} />
+		</table><br><img src={{ settings.PREFIX }}/quota/{{username}} />
 	</td>
 </tr>
 <tr>
@@ -37,7 +37,7 @@
 	</td></tr>
 <tr>
 	<td class=field_name>Фотография:</td>
-	<td class=field_value><center><img src=./photo/{{username}} /></center></td></tr>
+	<td class=field_value><center><img src={{ settings.PREFIX }}/photo/{{username}} /></center></td></tr>
 <tr>
 	<td class=field_name>Выдан:</td>
 	<td class=field_value>N/A</td></tr>

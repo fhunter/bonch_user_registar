@@ -9,10 +9,10 @@
 	</tr>
 % for i in quotas:
 <tr>
-	<td class=field_value><a href=./uinfo/{{i["username"]}}>{{i["username"]}}</a></td>
+	<td class=field_value><a href={{ settings.PREFIX }}/uinfo/{{i["username"]}}>{{i["username"]}}</a></td>
 	<td class=field_value>{{i["quota"]}}</td>
 	<td class=field_value>{{i["useddisk"]}}</td>
-	<td class=field_value><img src=./quota/{{i["username"]}} /></td>
+	<td class=field_value><img src={{ settings.PREFIX }}/quota/{{i["username"]}} /></td>
 </tr>
 %end
 </table>

@@ -1,4 +1,5 @@
 %include header
+%import settings
 <h1>Просмотр группы</h1>
 <h2>{{groupname}}</h2>
 <table>
@@ -10,8 +11,8 @@
 </tr>
 %for i in users:
 <tr>
-<td class=field_value><a href=./uinfo/{{i['username']}}>{{i['username']}}</a></td>
-<td class=field_value><img src=./quota/{{i['username']}} width=100%></td>
+<td class=field_value><a href={{ settings.PREFIX }}/uinfo/{{i['username']}}>{{i['username']}}</a></td>
+<td class=field_value><img src={{ settings.PREFIX }}/quota/{{i['username']}} width=100%></td>
 <td class=field_value>{{i['password']}}</td>
 <td class=field_value align=center valign=center>
 %if i['applied']:
