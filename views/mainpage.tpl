@@ -1,5 +1,5 @@
 %include header
-%include settings
+%import settings
 <h1>Информация о пользователях и сброс паролей</h1>
 <form method="post" action="{{ settings.PREFIX }}/" name="usersearch">
 Ключ поиска:<input type="text" name="searchkey">
