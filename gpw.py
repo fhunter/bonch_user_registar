@@ -10,7 +10,7 @@ See www.multicians.org/thvv/gpw.html for more info
    THVV 07/30/97 fixed for Netscape 4.0
    THVV 11/27/09 ported to Javascript
 '''
-from __future__ import print_function
+
 import random
 import string
 
@@ -706,14 +706,14 @@ class GPW(object):
             x = string.ascii_lowercase.find(password[-2])
             y = string.ascii_lowercase.find(password[-1])
             total = 0
-            for z in xrange(26):
+            for z in range(26):
                 total += trigram[x][y][z]
             if not total:
                 break # total was zero??
             self.randnum = random.random() * total
             total = 0
             #pdb.set_trace()
-            for z in xrange(26):
+            for z in range(26):
                 total += trigram[x][y][z]
                 if total > self.randnum:
                     password += string.ascii_lowercase[z]
@@ -729,9 +729,9 @@ class GPW(object):
         # ... in reality it's probably the total of all trigram combinations
         # ... Sweet! I was right (see the last few lines)
         self.randnum = random.random() * 125729.0
-        for x in xrange(26):
-            for y in xrange(26):
-                for z in xrange(26):
+        for x in range(26):
+            for y in range(26):
+                for z in range(26):
                     total += trigram[x][y][z]
                     if total > self.randnum:
                         start += string.ascii_lowercase[x]
@@ -741,6 +741,6 @@ class GPW(object):
 
 
 if __name__ == "__main__":
-    for x in xrange(1):
+    for x in range(1):
         print(GPW(6).password)
 

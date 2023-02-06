@@ -1,2 +1,2 @@
 
-PREFIX='/selfreg/'
+PREFIX='/selfreg'
