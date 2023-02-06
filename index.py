@@ -8,20 +8,22 @@ import io
 import bottle
 from bottle import route, view, request, template, static_file, response, abort, redirect
 from PIL import Image
+from sqlalchemy import or_
 import qrcode
 import gpw
 import settings
-from my_db import db_exec_sql
+from my_db import User, Queue, Quota, Session
 
 def findusers(key):
+    #DONE
     userlist = []
-    key = key.decode('utf-8')
     key = '%' + key + '%'
-    t = ( key, key, key )
-    result=db_exec_sql("select username,fio,studnum from users where (username like %s) or (fio like %s) or (studnum like %s)", t)
+    session = Session()
+    result = session.query(User).filter(or_(User.username.like(key), User.fio.like(key), User.studnum.like(key))).all()
     return result
 
 def resetpassword(username):
+    #DONE
     user={}
     password=""
     students_gid=grp.getgrnam("students")[2]
@@ -33,8 +35,9 @@ def resetpassword(username):
     if passwd[3]==students_gid:
         password=gpw.GPW(6).password
         currentuser = os.environ["REMOTE_USER"]
-        t = ( username, password, currentuser )
-        db_exec_sql('insert into queue (username, password, resetedby) values (%s, %s, %s)', t)
+        session = Session()
+        session.add( Queue(username=username, password=password,resetedby=currentuser))
+        session.commit()
     else:
         password = ""
     return password
@@ -48,10 +51,7 @@ def getuser(username):
     t = ( username, )
     result=db_exec_sql("select fio,studnum from users where username = %s", t)[0]
     quotaresult=db_exec_sql("select usedspace,softlimit from quota where username = %s",t)[0]
-    queue = db_exec_sql(
-        "select password, done, date from queue where username=%s order by date desc limit 1",
-        (username,)
-        )
+    queue = db_exec_sql("select password, done, date from queue where username=%s order by date desc limit 1", (username,) )
     user["password"]=""
     user["applied"]=False
     if queue:
@@ -252,31 +252,39 @@ def show_groups():
         if (i.pw_uid >=1000) and (i.pw_uid <=64000):
             userlist.append(i.pw_name)
     counts['passwd'] = len(userlist)
-    result = db_exec_sql('select count(username) from quota')[0][0]
+    session = Session()
+    result = session.query(Quota).count()
+#    result = db_exec_sql('select count(username) from quota')[0][0]
     counts['quota'] = result
-    result = db_exec_sql('select count(username) from users')[0][0]
+    result = session.query(User).count()
+#    result = db_exec_sql('select count(username) from users')[0][0]
     counts['users'] = result
     #cleanup begin
     #remove absent from passwd
-    for i in db_exec_sql('select username from quota'):
-        if i[0] not in userlist:
-            #extra, remove it
-            #print i[0]
-            db_exec_sql('delete from quota where username = %s', (i[0],))
-    for i in db_exec_sql('select username from users'):
-        if i[0] not in userlist:
-            #extra, remove it
-            #print i[0]
-            db_exec_sql('delete from users where username = %s', (i[0],))
+###    for i in db_exec_sql('select username from quota'):
+###        if i[0] not in userlist:
+###            #extra, remove it
+###            #print i[0]
+###            db_exec_sql('delete from quota where username = %s', (i[0],))
+###    for i in db_exec_sql('select username from users'):
+###        if i[0] not in userlist:
+###            #extra, remove it
+###            #print i[0]
+###            db_exec_sql('delete from users where username = %s', (i[0],))
     #insert missing
     for i in userlist:
-        result = db_exec_sql('select username from quota where username = %s', (i,))
+#        result = db_exec_sql('select username from quota where username = %s', (i,))
+        result = session.query(Quota).filter(Quota.username==i).all()
         if len(result) == 0:
-            db_exec_sql('insert into quota (username, usedspace, softlimit) values ( %s, %s, %s)', (i, 0,0))
+            session.add(Quota(username=i,usedspace=0,softlimit=0))
+            #db_exec_sql('insert into quota (username, usedspace, softlimit) values ( %s, %s, %s)', (i, 0,0))
     for i in userlist:
-        result = db_exec_sql('select username from users where username = %s', (i,))
+        #result = db_exec_sql('select username from users where username = %s', (i,))
+        result = session.query(User).filter(User.username == i).all()
         if len(result) == 0:
-            db_exec_sql('insert into users (username, fio, studnum) values ( %s, %s, %s)', (i, '',''))
+            session.add(User(username=i))
+            #db_exec_sql('insert into users (username, fio, studnum) values ( %s, %s, %s)', (i, '',''))
+    session.commit()
     #cleanup end
     for i in grp.getgrall():
         if (i[2] > 1000) and (i[2] <=64000):
@@ -321,4 +329,5 @@ def send_swf(filename):
     #FIXME: flash content type
     return static_file(filename, root='./files/', mimetype='application/x-shockwave-flash')
 
-bottle.run(server=bottle.CGIServer)
+#bottle.run(server=bottle.CGIServer)
+bottle.run(host="127.0.0.1", port=8888, debug=True, reloader=True)

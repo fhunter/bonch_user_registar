@@ -8,7 +8,7 @@
 % if defined('query'):
 <table><tr><td class=field_name>Имя пользователя</td><td class=field_name>ФИО</td><td class=field_name>Номер студ билета</td></tr>
 	%for i in query:
-		<tr><td class=field_value><a href="{{ settings.PREFIX }}/uinfo/{{unicode(i[0])}}">{{unicode(i[0])}}</a></td><td class=field_value>{{unicode(i[1])}}</td><td class=field_value>{{unicode(i[2])}}</td></tr>
+		<tr><td class=field_value><a href="{{ settings.PREFIX }}/uinfo/{{i.username}}">{{i.username}}</a></td><td class=field_value>{{i.fio}}</td><td class=field_value>{{i.studnum}}</td></tr>
 	%end
 </table>
 % end
