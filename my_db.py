@@ -1,6 +1,9 @@
 # vim: set fileencoding=utf-8 :
 #import secret
 
+""" Database access abstraction module """
+
+import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, LargeBinary, Boolean, DateTime, ForeignKey
@@ -11,17 +14,19 @@ Session = sessionmaker(bind=engine)
 
 Base = declarative_base()
 
-#CREATE TABLE users (id integer primary key autoincrement not null, username text unique, fio text,studnum text, photo blob);
+def db_exec_sql(*params):
+    raise Exception("Not implemented %s" % (params))
+
 class User(Base):
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True)
-    username = Column(String, unique=True)
-    fio = Column(String)
-    studnum = Column(String)
-    photo_id = Column(Integer, ForeignKey('photos.id'))
+    username = Column(String, unique=True, nullable =False)
+    fio = Column(String, nullable = False, default = "")
+    studnum = Column(String, nullable = False, default ="")
     photo = relationship("Photo")
     quota = relationship("Quota")
+    queue = relationship("Queue")
 
     def __repr__(self):
         return "<User(username='%s', fio='%s', studnum='%s')>" % (
@@ -39,31 +44,29 @@ class Photo(Base):
         return "<Photo(user_id='%s', photo='%s')>" % (
                             self.user_id, self.photo)
 
-#CREATE TABLE queue (id integer primary key autoincrement not null, username text not null, password text not null, date datetime not null default current_timestamp, done boolean not null default 'false',resetedby text);
 class Queue(Base):
     __tablename__ = 'queue'
     id = Column(Integer, primary_key=True)
-    username = Column(String) # notnull - foreign key
-    password = Column(String) # notnull
-    date = Column(DateTime) # notnull, default current_timestamp
-    done = Column(Boolean) # default false, not null
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    password = Column(String,nullable=False)
+    date = Column(DateTime,nullable=False, default=datetime.datetime.now())
+    done = Column(Boolean, nullable=False, default=False)
     resetedby = Column(String)
-    
+
     def __repr__(self):
         return "<Queue(username='%s', password='%s', date='%s' done='%s' resetby='%s')>" % (
-                            self.username, self.password, self.date, self.done, self.resetedby)
+                            self.user_id, self.password, self.date, self.done, self.resetedby)
 
-#CREATE TABLE quota (id integer primary key autoincrement not null, username text not null unique, usedspace integer not null, softlimit integer not null);
 class Quota(Base):
     __tablename__ = 'quota'
     id = Column(Integer, primary_key=True)
-    username = Column(String, unique=True)
-    usedspace = Column(Integer)
-    softlimit = Column(Integer)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, unique=True)
+    usedspace = Column(Integer, nullable=False, default=0)
+    softlimit = Column(Integer, nullable=False, default=0)
 
     def __repr__(self):
         return "<Quota(username='%s', used space='%s',  softlimit='%s')>" % (
-                            self.username, self.usedspace, self.softlimit)
+                            self.user_id, self.usedspace, self.softlimit)
 
 
 Base.metadata.create_all(engine)
