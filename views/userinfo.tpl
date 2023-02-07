@@ -1,4 +1,5 @@
 %include header
+%import settings
 <h1>Информация о пользователе</h1>
 <table>
 <tr>
@@ -27,7 +28,7 @@
 		<table><tr>
 		%k=0
 		%for i in groups:
-			<td class=field_value width=20%>{{unicode(i)}}</td>
+			<td class=field_value width=20%>{{i}}</td>
 		%k = k + 1
 		%if k % 5 == 0:
 			</tr><tr>
