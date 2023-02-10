@@ -65,7 +65,10 @@ def getuser(username):
         User.username,
         Queue.password,
         Queue.done,
-        Queue.date).join(Queue).order_by(Queue.date.desc()).limit(1).all()
+        Queue.date).\
+        join(Queue).\
+        filter(User.username==username).\
+        order_by(Queue.date.desc()).limit(1).all()
     user["password"]=""
     user["applied"]=False
     if queue:
@@ -162,8 +165,14 @@ def overquota():
 @view('listreset')
 def listreset():
     session = Session()
-    data = session.query(User).join(Queue).filter(not Queue.done).order_by(Queue.date.desc()).all()
-    #data = db_exec_sql('select * from queue where done=False order by date desc')
+    data = session.query(
+        User.username,
+        Queue.date,
+        Queue.resetedby,
+        Queue.password).\
+        join(Queue).\
+        filter(Queue.done.is_(False)).\
+        order_by(Queue.date.desc()).all()
     return dict(data = data)
 
 @app.route(settings.PREFIX + '/resetstats')
@@ -181,12 +190,12 @@ def resetstats():
     frequency = session.query(
         Queue.user_id,
         User.username,
-        func.count(Queue.user_id)).\
+        func.count(Queue.user_id).label('count')).\
         join(User).group_by(Queue.user_id).\
         order_by(func.count(Queue.user_id).desc()).limit(10)
     topresets = session.query(
         Queue.resetedby,
-        func.count(Queue.resetedby)).\
+        func.count(Queue.resetedby).label('count')).\
         group_by(Queue.resetedby).\
         order_by(func.count(Queue.resetedby).desc()).limit(10)
     return dict(
@@ -395,7 +404,6 @@ def send_js(filename):
 
 @app.route(settings.PREFIX + r'/<filename:re:.*\.swf>')
 def send_swf(filename):
-    #FIXME: flash content type
     return static_file(filename, root='./files/', mimetype='application/x-shockwave-flash')
 
 #bottle.run(server=bottle.CGIServer)

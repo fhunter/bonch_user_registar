@@ -12,7 +12,7 @@
 <h2>Наиболее часто сбрасываемые пароли</h2><br>
 <table><tr><td class=field_name>Пользователь</td><td class=field_name>сброшен</td></tr>
 %for i in frequency:
-<tr><td class=field_value>{{i[0]}}</td><td class=field_value>{{i[1]}} раз</td></tr>
+<tr><td class=field_value>{{i.username}}</td><td class=field_value>{{i.count}} раз</td></tr>
 %end
 </table>
 %end
@@ -20,7 +20,7 @@
 <h2>Top 10 лаборантов чаще всего сбрасывавших пароли</h2><br>
 <table><tr><td class=field_name>Пользователь</td><td class=field_name>сбросил</td></tr>
 %for i in topresets:
-<tr><td class=field_value>{{i[0]}}</td><td class=field_value>{{i[1]}} раз</td></tr>
+<tr><td class=field_value>{{i.resetedby}}</td><td class=field_value>{{i.count}} раз</td></tr>
 %end
 </table>
 %end

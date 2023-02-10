@@ -9,10 +9,10 @@
 	</tr>
 % for i in data:
 	<tr>
-		<td class=field_value>{{i[1]}}</td>
-		<td class=field_value>{{i[3]}}</td>
-		<td class=field_value>{{i[2]}}</td>
-		<td class=field_value>{{i[5]}}</td>
+		<td class=field_value>{{i.username}}</td>
+		<td class=field_value>{{i.date}}</td>
+		<td class=field_value>{{i.password}}</td>
+		<td class=field_value>{{i.resetedby}}</td>
 	</tr>
 % end
 </table>

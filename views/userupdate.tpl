@@ -1,4 +1,5 @@
 %include header title = "Обновление пользовательских данных"
+%import settings
 
 <table><tr><td>
 <form method=post id="form" name="form">
@@ -30,7 +31,7 @@
 	<div id="my_camera" style="width:320px; height:240px;"></div>
 	
 	<!-- First, include the Webcam.js JavaScript Library -->
-	<script type="text/javascript" src="webcam.js"></script>
+	<script type="text/javascript" src="{{ settings.PREFIX}}/webcam.js"></script>
 	
 	<!-- Configure a few settings and attach camera -->
 	<script language="JavaScript">
