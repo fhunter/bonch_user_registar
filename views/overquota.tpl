@@ -1,4 +1,5 @@
 %include header
+%import settings
 <h1>Превысившие квоту</h1>
 <table>
 	<tr>

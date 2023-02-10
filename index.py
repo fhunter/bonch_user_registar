@@ -18,6 +18,8 @@ import gpw
 import settings
 from my_db import User, Queue, Quota, Session, db_exec_sql
 
+app = application = bottle.Bottle()
+
 def findusers(key):
     #DONE
     key = '%' + key + '%'
@@ -41,7 +43,7 @@ def resetpassword(username):
     #check that user is a student and generate password and qrcode from it
     if passwd[3]==students_gid:
         password=gpw.GPW(6).password
-        currentuser = os.environ["REMOTE_USER"]
+        currentuser = request.environ["REMOTE_USER"]
         session = Session()
         user = session.query(User).filter_by(username=username).first()
         session.add( Queue(user_id=user.id, password=password,resetedby=currentuser))
@@ -81,12 +83,12 @@ def getuser(username):
             user["groups"].append(i[0])
     return user
 
-@route(settings.PREFIX + '/')
+@app.route(settings.PREFIX + '/')
 @view('mainpage')
 def main():
     return dict()
 
-@route(settings.PREFIX + '/', method = 'POST')
+@app.route(settings.PREFIX + '/', method = 'POST')
 @view('mainpage')
 def main_search():
     searchkey = request.forms.get('searchkey')
@@ -94,34 +96,49 @@ def main_search():
     return dict(query = userlist)
 
 #- TODO: make it so, after debug . Should be available only from 127.0.0.1
-@route(settings.PREFIX + '/process/quota', method = 'POST')
+@app.route(settings.PREFIX + '/process/quota', method = 'POST')
 def receive_quota_update():
     """ Method takes in lines of 'username used_blocks quota' """
     data = request.json
+    session = Session()
     if isinstance(data, list):
         for i in data:
             username = i['username']
             quota = int(i['quota'])
             used  = int(i['used'])
-            db_exec_sql("insert into quota (username,usedspace,softlimit) values ( %s, '%s', '%s' ) on duplicate key update usedspace='%s', softlimit='%s';", (username, used, quota, used, quota) )
+            result = session.query(User).filter(User.username==username).first()
+            if result:
+                if result.quota:
+                    result.quota[0].usedspace = used
+                    result.quota[0].softlimit = quota
+                else:
+                    session.add(Quota(user_id=result.id, usedspace = used, softlimit = quota))
     else:
         username = data['username']
         quota = int(data['quota'])
         used  = int(data['used'])
-        db_exec_sql("insert into quota (username,usedspace,softlimit) values ( %s, '%s', '%s' ) on duplicate key update usedspace='%s', softlimit='%s';", (username, used, quota, used, quota) )
-    currentuser = os.environ["REMOTE_USER"]
+        result = session.query(User).filter(User.username==username).first()
+        if result:
+            if result.quota:
+                result.quota[0].usedspace = used
+                result.quota[0].softlimit = quota
+            else:
+                session.add(Quota(user_id=result.id, usedspace = used, softlimit = quota))
+    session.commit()
+    currentuser = request.environ["REMOTE_USER"]
     return dict(currentuser=currentuser)
 
 #- TODO: make it so, after debug . Should be available only from 127.0.0.1
-@route(settings.PREFIX + '/process/newuser', method = 'POST')
+@app.route(settings.PREFIX + '/process/newuser', method = 'POST')
 def receive_users_update():
     """ Method takes in json array of dictionaries: username/password """
     data = request.json
     password = resetpassword(data['username'])
-    currentuser = os.environ["REMOTE_USER"]
+    currentuser = request.environ["REMOTE_USER"]
     return dict(username=data['username'],password=password,currentuser=currentuser)
 
-@route(settings.PREFIX + '/listoverquota')
+
+@app.route(settings.PREFIX + '/listoverquota')
 @view('overquota')
 def overquota():
 #    result = db_exec_sql("select username from quota where usedspace >
@@ -129,20 +146,19 @@ def overquota():
     session = Session()
     result = session.query(
         Quota.user_id,
-        User.username).join(User).\
+        User.username, Quota.usedspace, Quota.softlimit).join(User).\
         filter(Quota.usedspace>Quota.softlimit).\
         filter(Quota.softlimit>0).all()
     quotas = []
     for i in result:
-        userinfo = getuser(i[0])
         dictionary = dict(
-            username = i[0],
-            quota = userinfo["quota"],
-            useddisk = userinfo["useddiskspace"])
+            username = i.username,
+            quota = i.softlimit,
+            useddisk = i.usedspace)
         quotas.append(dictionary)
     return dict(quotas = quotas)
 
-@route(settings.PREFIX + '/listreset')
+@app.route(settings.PREFIX + '/listreset')
 @view('listreset')
 def listreset():
     session = Session()
@@ -150,7 +166,7 @@ def listreset():
     #data = db_exec_sql('select * from queue where done=False order by date desc')
     return dict(data = data)
 
-@route(settings.PREFIX + '/resetstats')
+@app.route(settings.PREFIX + '/resetstats')
 @view('statistics')
 def resetstats():
     #DONE
@@ -180,12 +196,13 @@ def resetstats():
         frequency = frequency,
         topresets = topresets)
 
-@route(settings.PREFIX + '/quota/<username:re:[a-zA-Z0-9_][a-zA-Z0-9_.]+>')
+@app.route(settings.PREFIX + '/quota/<username:re:[a-zA-Z0-9_][a-zA-Z0-9_.]+>')
 def show_userquota(username):
     response.set_header('Content-type', 'image/png')
-    userinfo = getuser(username)
-    quota = int(userinfo["quota"])
-    useddisk = int(userinfo["useddiskspace"])
+    session = Session()
+    user = session.query(User).filter(User.username==username).first()
+    quota = user.quota[0].softlimit
+    useddisk = user.quota[0].usedspace
     image_file = io.BytesIO()
     image = Image.new("RGB",(514,34), "white")
     image.im.paste((0,0,0),(0,0,514,34))
@@ -200,7 +217,7 @@ def show_userquota(username):
     image.save(image_file, "PNG")
     return image_file.getvalue()
 
-@route(settings.PREFIX + '/photo/<username:re:[a-zA-Z0-9_][a-zA-Z0-9_.]+>')
+@app.route(settings.PREFIX + '/photo/<username:re:[a-zA-Z0-9_][a-zA-Z0-9_.]+>')
 def show_userphoto(username):
     response.set_header('Content-type', 'image/png')
     empty=b"""
@@ -219,11 +236,11 @@ def show_userphoto(username):
     image = codecs.decode(photo, 'base64')
     return image
 
-@route(settings.PREFIX + '/user')
-@route(settings.PREFIX + '/user/')
+@app.route(settings.PREFIX + '/user')
+@app.route(settings.PREFIX + '/user/')
 @view('userupdate')
 def update_user():
-    user = os.environ["REMOTE_USER"].split('@')[0]
+    user = request.environ["REMOTE_USER"].split('@')[0]
     session = Session()
     result = session.query(User.fio, User.studnum, User.photo).filter(User.username==user).first()
     fio = ""
@@ -239,11 +256,11 @@ def update_user():
             photo = ""
     return dict(username = user, fio = fio, studnum = studnum, photo = photo)
 
-@route(settings.PREFIX + '/user', method = 'POST')
-@route(settings.PREFIX + '/user/', method = 'POST')
+@app.route(settings.PREFIX + '/user', method = 'POST')
+@app.route(settings.PREFIX + '/user/', method = 'POST')
 @view('userupdate')
 def update_user2():
-    user = os.environ["REMOTE_USER"].split('@')[0]
+    user = request.environ["REMOTE_USER"].split('@')[0]
     fio = request.forms.get('fio',None)
     studnum = request.forms.get('studnum',None)
     photo = request.forms.get('photo',None)
@@ -260,7 +277,7 @@ def update_user2():
     session.commit()
     return dict(username = user, fio = fio, studnum = studnum, photo = photo)
 
-@route(settings.PREFIX + '/uinfo/<username:re:[a-zA-Z0-9_][a-zA-Z0-9_.]+>')
+@app.route(settings.PREFIX + '/uinfo/<username:re:[a-zA-Z0-9_][a-zA-Z0-9_.]+>')
 @view('userinfo')
 def show_userinfo(username):
     userinfo = getuser(username)
@@ -278,7 +295,7 @@ def show_userinfo(username):
         password = userinfo["password"],
         applied = userinfo["applied"] )
 
-@route(settings.PREFIX + '/reset/<username:re:[a-zA-Z0-9_][a-zA-Z0-9_.]+>')
+@app.route(settings.PREFIX + '/reset/<username:re:[a-zA-Z0-9_][a-zA-Z0-9_.]+>')
 @view('passwordreset')
 def reset_password(username):
     newpassword=resetpassword(username)
@@ -296,7 +313,7 @@ def reset_password(username):
         password = newpassword,
         qrcode = base64.b64encode(image_file.getvalue()) )
 
-@route(settings.PREFIX + '/groups')
+@app.route(settings.PREFIX + '/groups')
 @view('groups')
 def show_groups():
     grouplist = []
@@ -342,7 +359,7 @@ def show_groups():
     return dict(data = grouplist, counts = counts)
 
 #TODO
-@route(settings.PREFIX + '/groups/<groupname>')
+@app.route(settings.PREFIX + '/groups/<groupname>')
 @view('groupview')
 def show_group(groupname):
     group = grp.getgrnam(groupname)
@@ -356,30 +373,46 @@ def show_group(groupname):
     return dict(groupname=groupname,users=data_list, )
 
 #TODO
-@route(settings.PREFIX + '/groups/add/<groupname>')
+@app.route(settings.PREFIX + '/groups/add/<groupname>')
 def add_group(groupname):
     redirect('../../groups')
 
 #TODO
-@route(settings.PREFIX + '/groupstats')
+@app.route(settings.PREFIX + '/groupstats')
 @view('groupstats')
 def show_group_queues():
     return dict()
 
-@route(settings.PREFIX + r'/<filename:re:.*\.css>')
+@app.route(settings.PREFIX + r'/<filename:re:.*\.css>')
 def send_css(filename):
     #DONE
     return static_file(filename, root='./files/', mimetype='text/css')
 
-@route(settings.PREFIX + r'/<filename:re:.*\.js>')
+@app.route(settings.PREFIX + r'/<filename:re:.*\.js>')
 def send_js(filename):
     #DONE
     return static_file(filename, root='./files/', mimetype='text/javascript')
 
-@route(settings.PREFIX + r'/<filename:re:.*\.swf>')
+@app.route(settings.PREFIX + r'/<filename:re:.*\.swf>')
 def send_swf(filename):
     #FIXME: flash content type
     return static_file(filename, root='./files/', mimetype='application/x-shockwave-flash')
 
 #bottle.run(server=bottle.CGIServer)
-bottle.run(host="127.0.0.1", port=8888, debug=True, reloader=True)
+#bottle.run(host="127.0.0.1", port=8888, debug=True, reloader=True)
+
+class StripPathMiddleware(object):
+    '''
+    Get that slash out of the request
+    '''
+    def __init__(self, attr):
+        self.attr = attr
+    def __call__(self, environ, h_data):
+        environ['PATH_INFO'] = environ['PATH_INFO'].rstrip('/')
+        return self.a(environ, h_data)
+
+if __name__ == '__main__':
+    bottle.run(app=app,
+        debug=True, reloader=True,
+        host='127.0.0.1',
+        port=8888)
