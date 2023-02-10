@@ -4,7 +4,6 @@
 """ Main web app module """
 
 import pwd
-import os
 import grp
 import codecs
 import base64
