@@ -93,7 +93,7 @@ def main():
 @app.route(settings.PREFIX + '/', method = 'POST')
 @view('mainpage')
 def main_search():
-    searchkey = request.forms.get('searchkey')
+    searchkey = request.forms.getunicode('searchkey')
     userlist=findusers(searchkey)
     return dict(query = userlist)
 
@@ -261,7 +261,10 @@ def update_user():
         if studnum is None:
             studnum = ""
         if photo is None:
-            photo = ""
+            photo=b"""
+                iVBORw0KGgoAAAANSUhEUgAAAGQAAABkAQAAAABYmaj5AAAAAmJLR0QAAd2KE6QAAAAZSURBVDjLY/
+                iPBD4wjPJGeaO8Ud4oj8Y8AL7rCVzcsTKLAAAAAElFTkSuQmCC
+            """
     return dict(username = user, fio = fio, studnum = studnum, photo = photo)
 
 @app.route(settings.PREFIX + '/user', method = 'POST')
@@ -269,9 +272,9 @@ def update_user():
 @view('userupdate')
 def update_user2():
     user = request.environ["REMOTE_USER"].split('@')[0]
-    fio = request.forms.get('fio',None)
-    studnum = request.forms.get('studnum',None)
-    photo = request.forms.get('photo',None)
+    fio = request.forms.getunicode('fio',None)
+    studnum = request.forms.getunicode('studnum',None)
+    photo = request.forms.getunicode('photo',None)
     session = Session()
     userdata = session.query(User).filter_by(username=user).first()
     if fio:
