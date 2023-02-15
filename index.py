@@ -10,6 +10,7 @@ import base64
 import io
 import bottle
 from bottle import route, view, request, static_file, response, abort, redirect
+from functools import lru_cache
 from PIL import Image
 from sqlalchemy import or_, func
 import qrcode
@@ -113,8 +114,8 @@ def receive_quota_update():
             result = session.query(User).filter(User.username==username).first()
             if result:
                 if result.quota:
-                    result.quota[0].usedspace = used
-                    result.quota[0].softlimit = quota
+                    result.quota.usedspace = used
+                    result.quota.softlimit = quota
                 else:
                     session.add(Quota(user_id=result.id, usedspace = used, softlimit = quota))
     else:
@@ -124,11 +125,12 @@ def receive_quota_update():
         result = session.query(User).filter(User.username==username).first()
         if result:
             if result.quota:
-                result.quota[0].usedspace = used
-                result.quota[0].softlimit = quota
+                result.quota.usedspace = used
+                result.quota.softlimit = quota
             else:
                 session.add(Quota(user_id=result.id, usedspace = used, softlimit = quota))
     session.commit()
+    show_userquota.cache_clear()
     currentuser = getcurrentuser()
     return dict(currentuser=currentuser)
 
@@ -207,6 +209,7 @@ def resetstats():
         topresets = topresets)
 
 @app.route(settings.PREFIX + '/quota/<username:re:[a-zA-Z0-9_][a-zA-Z0-9_.]+>')
+@lru_cache(maxsize=1024)
 def show_userquota(username):
     response.set_header('Content-type', 'image/png')
     session = Session()
@@ -219,11 +222,6 @@ def show_userquota(username):
     image.im.paste((255,255,255),(1,1,513,33))
     image.im.paste((0,255,0),(1,17,int(1+(512.0/max(quota,useddisk+1))*quota),17+16))
     image.im.paste((255,0,0),(1,1,int(1+(512.0/max(quota,useddisk+1))*useddisk),1+16))
-#        image = Image.new("RGB",(514,18), "white")
-#        image.im.paste((0,0,0),(0,0,514,18))
-#        image.im.paste((255,255,255),(1,1,513,17))
-#        image.im.paste((0,255,0),(1,9,int(1+(512.0/max(quota,used))*quota),9+8))
-#        image.im.paste((255,0,0),(1,1,int(1+(512.0/max(quota,used))*used),1+8))
     image.save(image_file, "PNG")
     return image_file.getvalue()
 
