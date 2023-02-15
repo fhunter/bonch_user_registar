@@ -24,30 +24,18 @@ class User(Base):
     username = Column(String, unique=True, nullable =False)
     fio = Column(String, nullable = False, default = "")
     studnum = Column(String, nullable = False, default ="")
-    photo = relationship("Photo")
-    quota = relationship("Quota")
-    queue = relationship("Queue")
+    quota = relationship("Quota", uselist = False, back_populates="username", cascade="all, delete-orphan")
+    queue = relationship("Queue", back_populates="username", cascade="all, delete-orphan")
 
     def __repr__(self):
         return "<User(username='%s', fio='%s', studnum='%s')>" % (
                             self.username, self.fio, self.studnum)
 
-class Photo(Base):
-    __tablename__ = 'photos'
-
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
-    user = relationship("User")
-    photo = Column(LargeBinary)
-
-    def __repr__(self):
-        return "<Photo(user_id='%s', photo='%s')>" % (
-                            self.user_id, self.photo)
-
 class Queue(Base):
     __tablename__ = 'queue'
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    username = relationship("User", back_populates="queue")
     password = Column(String,nullable=False)
     date = Column(DateTime,nullable=False, default=datetime.datetime.now())
     done = Column(Boolean, nullable=False, default=False)
@@ -61,6 +49,7 @@ class Quota(Base):
     __tablename__ = 'quota'
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False, unique=True)
+    username = relationship("User", back_populates="quota")
     usedspace = Column(Integer, nullable=False, default=0)
     softlimit = Column(Integer, nullable=False, default=0)
 

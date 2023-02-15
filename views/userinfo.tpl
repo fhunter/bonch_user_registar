@@ -37,9 +37,6 @@
 	</tr></table>
 	</td></tr>
 <tr>
-	<td class=field_name>Фотография:</td>
-	<td class=field_value><center><img src={{ settings.PREFIX }}/photo/{{username}} /></center></td></tr>
-<tr>
 	<td class=field_name>Выдан:</td>
 	<td class=field_value>N/A</td></tr>
 <tr>

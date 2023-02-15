@@ -16,8 +16,10 @@ import qrcode
 import gpw
 import settings
 from my_db import User, Queue, Quota, Session, db_exec_sql
+from utils import getcurrentuser, normaliseuser
 
 app = application = bottle.Bottle()
+
 
 def findusers(key):
     #DONE
@@ -42,7 +44,7 @@ def resetpassword(username):
     #check that user is a student and generate password and qrcode from it
     if passwd[3]==students_gid:
         password=gpw.GPW(6).password
-        currentuser = request.environ["REMOTE_USER"]
+        currentuser = getcurrentuser()
         session = Session()
         user = session.query(User).filter_by(username=username).first()
         session.add( Queue(user_id=user.id, password=password,resetedby=currentuser))
@@ -75,8 +77,8 @@ def getuser(username):
         user["applied"]=queue[0].done
     user["fio"] = result.fio
     user["studnumber"] = result.studnum
-    user["quota"] = result.quota[0].softlimit
-    user["useddiskspace"] = result.quota[0].usedspace
+    user["quota"] = result.quota.softlimit
+    user["useddiskspace"] = result.quota.usedspace
     user["username"] = passwd[0]
     user["groups"] = []
     user["groups"].append(grp.getgrgid(passwd[3])[0])
@@ -127,7 +129,7 @@ def receive_quota_update():
             else:
                 session.add(Quota(user_id=result.id, usedspace = used, softlimit = quota))
     session.commit()
-    currentuser = request.environ["REMOTE_USER"]
+    currentuser = getcurrentuser()
     return dict(currentuser=currentuser)
 
 #- TODO: make it so, after debug . Should be available only from 127.0.0.1
@@ -136,7 +138,7 @@ def receive_users_update():
     """ Method takes in json array of dictionaries: username/password """
     data = request.json
     password = resetpassword(data['username'])
-    currentuser = request.environ["REMOTE_USER"]
+    currentuser = getcurrentuser()
     return dict(username=data['username'],password=password,currentuser=currentuser)
 
 
@@ -209,8 +211,8 @@ def show_userquota(username):
     response.set_header('Content-type', 'image/png')
     session = Session()
     user = session.query(User).filter(User.username==username).first()
-    quota = user.quota[0].softlimit
-    useddisk = user.quota[0].usedspace
+    quota = user.quota.softlimit
+    useddisk = user.quota.usedspace
     image_file = io.BytesIO()
     image = Image.new("RGB",(514,34), "white")
     image.im.paste((0,0,0),(0,0,514,34))
@@ -225,68 +227,39 @@ def show_userquota(username):
     image.save(image_file, "PNG")
     return image_file.getvalue()
 
-@app.route(settings.PREFIX + '/photo/<username:re:[a-zA-Z0-9_][a-zA-Z0-9_.]+>')
-def show_userphoto(username):
-    response.set_header('Content-type', 'image/png')
-    empty=b"""
-        iVBORw0KGgoAAAANSUhEUgAAAGQAAABkAQAAAABYmaj5AAAAAmJLR0QAAd2KE6QAAAAZSURBVDjLY/
-        iPBD4wjPJGeaO8Ud4oj8Y8AL7rCVzcsTKLAAAAAElFTkSuQmCC
-    """
-    session = Session()
-    photo=session.query(User.photo).filter(User.username==username).all()
-    print(photo)
-    if not photo:
-        photo=empty
-    else:
-        photo=photo[0]
-    if photo is None:
-        photo=empty
-    image = codecs.decode(photo, 'base64')
-    return image
-
 @app.route(settings.PREFIX + '/user')
 @app.route(settings.PREFIX + '/user/')
 @view('userupdate')
 def update_user():
-    user = request.environ["REMOTE_USER"].split('@')[0]
+    user = normaliseuser(getcurrentuser())
     session = Session()
-    result = session.query(User.fio, User.studnum, User.photo).filter(User.username==user).first()
+    result = session.query(User).filter(User.username==user).first()
     fio = ""
     studnum = ""
-    photo = ""
     if result:
-        (fio,studnum, photo ) = result[0]
+        fio = result.fio
+        studnum =result.studnum
         if fio is None:
             fio = ""
         if studnum is None:
             studnum = ""
-        if photo is None:
-            photo=b"""
-                iVBORw0KGgoAAAANSUhEUgAAAGQAAABkAQAAAABYmaj5AAAAAmJLR0QAAd2KE6QAAAAZSURBVDjLY/
-                iPBD4wjPJGeaO8Ud4oj8Y8AL7rCVzcsTKLAAAAAElFTkSuQmCC
-            """
-    return dict(username = user, fio = fio, studnum = studnum, photo = photo)
+    return dict(username = user, fio = fio, studnum = studnum)
 
 @app.route(settings.PREFIX + '/user', method = 'POST')
 @app.route(settings.PREFIX + '/user/', method = 'POST')
 @view('userupdate')
 def update_user2():
-    user = request.environ["REMOTE_USER"].split('@')[0]
+    user = normaliseuser(getcurrentuser())
     fio = request.forms.getunicode('fio',None)
     studnum = request.forms.getunicode('studnum',None)
-    photo = request.forms.getunicode('photo',None)
     session = Session()
     userdata = session.query(User).filter_by(username=user).first()
     if fio:
         userdata.fio = fio
     if studnum:
         userdata.studnum = studnum
-    if photo:
-        #FIXME
-        photo = photo.replace("data:image/png;base64,","")
-        db_exec_sql("update users set photo = %s where username=%s",(photo, user,))
     session.commit()
-    return dict(username = user, fio = fio, studnum = studnum, photo = photo)
+    return dict(username = user, fio = fio, studnum = studnum)
 
 @app.route(settings.PREFIX + '/uinfo/<username:re:[a-zA-Z0-9_][a-zA-Z0-9_.]+>')
 @view('userinfo')
@@ -338,30 +311,17 @@ def show_groups():
             userlist.append(i.pw_name)
     counts['passwd'] = len(userlist)
     session = Session()
-    result = session.query(Quota).count()
-#    result = db_exec_sql('select count(username) from quota')[0][0]
-    counts['quota'] = result
-    result = session.query(User).count()
-#    result = db_exec_sql('select count(username) from users')[0][0]
-    counts['users'] = result
+    counts['quota'] = session.query(Quota).count()
+    counts['users'] = session.query(User).count()
     #cleanup begin
-    for i in session.query(User).all():
-        if i.username not in userlist:
-            #extra, remove it
-            #print i[0]
-            to_delete = session.query(User).filter_by(username=i.username).one()
-            session.delete(to_delete)
+    to_delete = session.query(User).filter(~User.username.in_(userlist))
+    for i in to_delete:
+        session.delete(i)
+    session.commit()
     #insert missing
-    for i in userlist:
-        result = session.query(User).filter(User.username == i).all()
-        if not result:
-            #  User absent - create
-            session.add(User(username=i))
-        else:
-            # Check for quota
-            if not session.query(Quota).filter(Quota.user_id == result[0].id).all():
-                # Create quota if absent
-                session.add(Quota(user_id=result[0].id))
+    result = {i.username for i in session.query(User.username).all()}
+    for i in set(userlist) - result:
+        session.add(User(username=i))
     session.commit()
     #cleanup end
     for i in grp.getgrall():
@@ -404,14 +364,7 @@ def send_js(filename):
     #DONE
     return static_file(filename, root='./files/', mimetype='text/javascript')
 
-@app.route(settings.PREFIX + r'/<filename:re:.*\.swf>')
-def send_swf(filename):
-    return static_file(filename, root='./files/', mimetype='application/x-shockwave-flash')
-
-#bottle.run(server=bottle.CGIServer)
-#bottle.run(host="127.0.0.1", port=8888, debug=True, reloader=True)
-
-class StripPathMiddleware(object):
+class StripPathMiddleware:
     '''
     Get that slash out of the request
     '''
