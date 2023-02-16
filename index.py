@@ -15,7 +15,7 @@ from sqlalchemy import or_, func
 import qrcode
 import gpw
 import settings
-from my_db import User, Queue, Quota, Session, db_exec_sql
+from my_db import User, Queue, Quota, Session
 from utils import getcurrentuser, normaliseuser
 
 app = application = bottle.Bottle()
@@ -205,22 +205,6 @@ def resetstats():
         date = date,
         frequency = frequency,
         topresets = topresets)
-
-@app.route(settings.PREFIX + '/quota/<username:re:[a-zA-Z0-9_][a-zA-Z0-9_.]+>')
-def show_userquota(username):
-    response.set_header('Content-type', 'image/png')
-    session = Session()
-    user = session.query(User).filter(User.username==username).first()
-    quota = user.quota.softlimit
-    useddisk = user.quota.usedspace
-    image_file = io.BytesIO()
-    image = Image.new("RGB",(514,34), "white")
-    image.im.paste((0,0,0),(0,0,514,34))
-    image.im.paste((255,255,255),(1,1,513,33))
-    image.im.paste((0,255,0),(1,17,int(1+(512.0/max(quota,useddisk+1))*quota),17+16))
-    image.im.paste((255,0,0),(1,1,int(1+(512.0/max(quota,useddisk+1))*useddisk),1+16))
-    image.save(image_file, "PNG")
-    return io.BytesIO(image_file.getvalue())
 
 @app.route(settings.PREFIX + '/user')
 @app.route(settings.PREFIX + '/user/')

@@ -19,7 +19,8 @@
 		<table>
 		<tr><td class=field_name>использовано:</td><td class=field_value align=right>{{quotaused}}</td><td class=field_value>Кб</td></tr>
 		<tr><td class=field_name>доступно:</td><td class=field_value align=right>{{quotaavail}}</td><td class=field_value>Кб</td></tr>
-		</table><br><img src={{ settings.PREFIX }}/quota/{{username}} />
+		</table><br>
+        %include quotatable used=quotaused, quota=quotaavail
 	</td>
 </tr>
 <tr>

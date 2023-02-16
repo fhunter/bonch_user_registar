@@ -50,6 +50,27 @@ div {
   border-radius: 6px;
 }
 
+#quotatable_u {
+  border: 1px black;
+  border-style: solid solid hidden solid;
+  margin-top: 2px;
+  margin-left: 2px;
+  margin-right: 2px;
+  border-collapse: collapse;
+  width: 514px;
+  height: 14px;
+}
+
+#quotatable_d {
+  border: 1px black;
+  border-style: hidden solid solid solid;
+  margin-bottom: 2px;
+  margin-left: 2px;
+  margin-right: 2px;
+  border-collapse: collapse;
+  width: 514px;
+  height: 14px;
+}
 
 #header {
 background: #838283;
