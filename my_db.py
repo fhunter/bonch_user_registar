@@ -24,7 +24,11 @@ class User(Base):
     username = Column(String, unique=True, nullable =False)
     fio = Column(String, nullable = False, default = "")
     studnum = Column(String, nullable = False, default ="")
-    quota = relationship("Quota", uselist = False, back_populates="username", cascade="all, delete-orphan")
+    quota = relationship(
+        "Quota",
+        uselist = False,
+        back_populates="username",
+        cascade="all, delete-orphan")
     queue = relationship("Queue", back_populates="username", cascade="all, delete-orphan")
 
     def __repr__(self):

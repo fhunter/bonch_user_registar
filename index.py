@@ -5,18 +5,17 @@
 
 import pwd
 import grp
-import codecs
 import base64
 import io
 import bottle
-from bottle import route, view, request, static_file, response, abort, redirect
-from PIL import Image
+from bottle import view, request, static_file, abort, redirect
 from sqlalchemy import or_, func
 import qrcode
 import gpw
 import settings
 from my_db import User, Queue, Quota, Session
 from utils import getcurrentuser, normaliseuser
+from utils import require_groups, require_users
 
 app = application = bottle.Bottle()
 
@@ -87,12 +86,20 @@ def getuser(username):
             user["groups"].append(i[0])
     return user
 
+@app.error(403)
+def error403(error_m):
+    e_message = "<html><head>"
+    e_message += f"<meta http-equiv=\"refresh\" content=\"5; url='{settings.PREFIX}/'\" />"
+    e_message += "</head><body><h1>Unauthorised, sorry</h1></body></html>"
+    return e_message
+
 @app.route(settings.PREFIX + '/')
 @view('mainpage')
 def main():
     return dict()
 
 @app.route(settings.PREFIX + '/', method = 'POST')
+@require_groups(settings.ADMINGROUPS)
 @view('mainpage')
 def main_search():
     searchkey = request.forms.getunicode('searchkey')
@@ -101,6 +108,7 @@ def main_search():
 
 #- TODO: make it so, after debug . Should be available only from 127.0.0.1
 @app.route(settings.PREFIX + '/process/quota', method = 'POST')
+@require_users(settings.QUOTAPROCESS)
 def receive_quota_update():
     """ Method takes in lines of 'username used_blocks quota' """
     data = request.json
@@ -134,6 +142,7 @@ def receive_quota_update():
 
 #- TODO: make it so, after debug . Should be available only from 127.0.0.1
 @app.route(settings.PREFIX + '/process/newuser', method = 'POST')
+@require_users(settings.QUOTAPROCESS)
 def receive_users_update():
     """ Method takes in json array of dictionaries: username/password """
     data = request.json
@@ -143,6 +152,7 @@ def receive_users_update():
 
 
 @app.route(settings.PREFIX + '/listoverquota')
+@require_groups(settings.ADMINGROUPS)
 @view('overquota')
 def overquota():
 #    result = db_exec_sql("select username from quota where usedspace >
@@ -163,6 +173,7 @@ def overquota():
     return dict(quotas = quotas)
 
 @app.route(settings.PREFIX + '/listreset')
+@require_groups(settings.ADMINGROUPS)
 @view('listreset')
 def listreset():
     session = Session()
@@ -177,6 +188,7 @@ def listreset():
     return dict(data = data)
 
 @app.route(settings.PREFIX + '/resetstats')
+@require_groups(settings.ADMINGROUPS)
 @view('statistics')
 def resetstats():
     #DONE
@@ -241,6 +253,7 @@ def update_user2():
     return dict(username = user, fio = fio, studnum = studnum)
 
 @app.route(settings.PREFIX + '/uinfo/<username:re:[a-zA-Z0-9_][a-zA-Z0-9_.]+>')
+@require_groups(settings.ADMINGROUPS)
 @view('userinfo')
 def show_userinfo(username):
     userinfo = getuser(username)
@@ -259,6 +272,7 @@ def show_userinfo(username):
         applied = userinfo["applied"] )
 
 @app.route(settings.PREFIX + '/reset/<username:re:[a-zA-Z0-9_][a-zA-Z0-9_.]+>')
+@require_users(settings.QUOTAPROCESS)
 @view('passwordreset')
 def reset_password(username):
     newpassword=resetpassword(username)
@@ -277,6 +291,7 @@ def reset_password(username):
         qrcode = base64.b64encode(image_file.getvalue()) )
 
 @app.route(settings.PREFIX + '/groups')
+@require_groups(settings.ADMINGROUPS)
 @view('groups')
 def show_groups():
     grouplist = []
@@ -310,6 +325,7 @@ def show_groups():
 
 #TODO
 @app.route(settings.PREFIX + '/groups/<groupname>')
+@require_groups(settings.ADMINGROUPS)
 @view('groupview')
 def show_group(groupname):
     group = grp.getgrnam(groupname)
@@ -324,11 +340,13 @@ def show_group(groupname):
 
 #TODO
 @app.route(settings.PREFIX + '/groups/add/<groupname>')
+@require_groups(settings.ADMINGROUPS)
 def add_group(groupname):
     redirect('../../groups')
 
 #TODO
 @app.route(settings.PREFIX + '/groupstats')
+@require_groups(settings.ADMINGROUPS)
 @view('groupstats')
 def show_group_queues():
     return dict()
