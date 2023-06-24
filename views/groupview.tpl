@@ -1,6 +1,6 @@
 %include header
 %import settings
-<h1>Просмотр группы</h1>
+<h1>Просмотр группы {{groupname}}</h1>
 
 <form method='post'>
 %for i in [('fio','ФИО'), ('number','Номер'), ('quota', 'Квота'), ('password','Пароль')]:
@@ -38,10 +38,10 @@
 <tr>
 <td class=field_value><a href={{ settings.PREFIX }}/uinfo/{{i['username']}}>{{i['username']}}</a></td>
 %if param['fio']:
-<td class=field_value></td>
+<td class=field_value>{{i['fio']}}</td>
 %end
 %if param['number']:
-<td class=field_value></td>
+<td class=field_value>{{i['studnumber']}}</td>
 %end
 %if param['quota']:
 <td class=field_value>
