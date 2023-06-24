@@ -290,11 +290,9 @@ def reset_password(username):
         password = newpassword,
         qrcode = base64.b64encode(image_file.getvalue()) )
 
-@app.route(settings.PREFIX + '/groups')
+@app.route(settings.PREFIX + '/resync')
 @require_groups(settings.ADMINGROUPS)
-@view('groups')
-def show_groups():
-    grouplist = []
+def resync_groups():
     counts = {}
     counts['passwd'] = 0
     counts['users'] = 0
@@ -318,13 +316,24 @@ def show_groups():
         session.add(User(username=i))
     session.commit()
     #cleanup end
+    return dict(counts=counts, userlist = userlist)
+
+@app.route(settings.PREFIX + '/groups')
+@require_groups(settings.ADMINGROUPS)
+@view('groups')
+def show_groups():
+    result = resync_groups()
+    counts = result['counts']
+    userlist = result['userlist']
+    grouplist = []
     for i in grp.getgrall():
         if (i[2] > 1000) and (i[2] <=64000):
-            grouplist.append((i[0],i[3],"",))
+            if i[3] and all([j.startswith(i[0]+'n') for j in i[3]]):
+                grouplist.append((i[0],i[3],))
     return dict(data = grouplist, counts = counts)
 
 #TODO
-@app.route(settings.PREFIX + '/groups/<groupname>')
+@app.route(settings.PREFIX + '/groups/<groupname>', method= ['GET', 'POST'])
 @require_groups(settings.ADMINGROUPS)
 @view('groupview')
 def show_group(groupname):
@@ -336,7 +345,14 @@ def show_group(groupname):
     for i in users:
         userinfo=getuser(i)
         data_list.append(userinfo)
-    return dict(groupname=groupname,users=data_list, )
+
+    params = {'fio': True, 'number': False, 'quota': True, 'password': False}
+    query = dict(request.params.decode())
+    for i in ['fio', 'number', 'quota', 'password']:
+        if i in query:
+            params[i]= (query[i] == '1')
+    params = {i : 1 if params[i] else 0 for i in params}
+    return dict(groupname=groupname,users=data_list, param=params )
 
 #TODO
 @app.route(settings.PREFIX + '/groups/add/<groupname>')

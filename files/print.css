@@ -1,5 +1,7 @@
+
+@media print {
 body {
-background: #f3f2f3;
+background: #ffffff;
 color: #000000;
 font-family: Trebuchet MS, Arial, Times New Roman;
 font-size: 12px;
@@ -12,8 +14,26 @@ width: 900px;
 height: 1000px;
 }
 
+button {
+   visibility: hidden;
+   width: 0px;
+   height: 0px;
+   position: absolute;
+}
+
 div {
    border: 1px dashed black;
+}
+
+form {
+   visibility: hidden;
+   width: 0px;
+   height: 0px;
+   position: absolute;
+}
+
+a {
+   color: black;
 }
 
 .UI_tab {
@@ -24,8 +44,8 @@ div {
 .list_element {
   padding: 1px;
   margin: 1px;
-  border: 1px solid red;
-  border-radius: 6px;
+  border: 1px solid black;
+  border-radius: 0px;
 }
 
 .refresh_button {
@@ -38,16 +58,17 @@ div {
 }
 
 .field_name {
-  background: red;
+  background: white;
   display: table-cell;
-  border-radius: 6px;
+  border: 1px solid black;
+  border-radius: 0px;
 }
 
 .field_value {
-  background: yellow;
+  background: white;
   display: table-cell;
   border: 1px dashed black;
-  border-radius: 6px;
+  border-radius: 0px;
 }
 
 #quotatable_u {
@@ -79,7 +100,7 @@ width: 900px;
 }
 
 h1 {
-color: red;
+color: black;
 }
 
 #input_form {
@@ -114,10 +135,11 @@ background: blue;
 float: right;
 width: 300px;
 }
-
 .userid {
 float: right; 
-padding: 1px;
+padding: 10px;
 margin: 1px; 
-border-radius: 6px;
+border-radius: 0px;
+}
+
 }

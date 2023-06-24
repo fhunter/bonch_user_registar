@@ -12,4 +12,4 @@
 % end
 % end
 <a href={{ settings.PREFIX }}/user/><button>Текущий пользователь</button></a>
-<div style="float: right; padding: 1px;margin: 1px; border-radius: 6px">{{ getcurrentuser() }}</div>
+<div class="userid">{{ getcurrentuser() }}</div>
