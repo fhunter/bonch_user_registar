@@ -3,4 +3,4 @@
 PREFIX='/selfreg'
 
 ADMINGROUPS=['personal','teachers']
-QUOTAPROCESS=['fhunter','automator','automator1','automator2']
+QUOTAPROCESS=['fhunter','automator/admin','automator1/admin','automator2/admin']
