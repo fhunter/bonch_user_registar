@@ -17,6 +17,7 @@ import settings
 from my_db import User, Queue, Quota, Session
 from utils import getcurrentuser, normaliseuser
 from utils import require_groups, require_users
+from utils import get_users_groups
 
 app = application = bottle.Bottle()
 
@@ -237,10 +238,48 @@ def update_user():
             studnum = ""
     return dict(username = user, fio = fio, studnum = studnum)
 
+@app.route(settings.PREFIX + '/user/<username>')
+@require_groups(settings.ADMINGROUPS)
+@view('userupdate')
+def update_user2(username):
+    session = Session()
+    groups = get_users_groups(username)
+    if ('students' not in groups) and (username != normaliseuser(getcurrentuser())):
+        abort(403,"Unauthorised")
+    result = session.query(User).filter(User.username==username).first()
+    fio = ""
+    studnum = ""
+    if result:
+        fio = result.fio
+        studnum =result.studnum
+        if fio is None:
+            fio = ""
+        if studnum is None:
+            studnum = ""
+    return dict(username = username, fio = fio, studnum = studnum)
+
+@app.route(settings.PREFIX + '/user/<username>', method = 'POST')
+@require_groups(settings.ADMINGROUPS)
+@view('userupdate')
+def update_user3(username):
+    groups = get_users_groups(username)
+    if ('students' not in groups) and (username != normaliseuser(getcurrentuser())):
+        abort(403,"Unauthorised")
+    fio = request.forms.getunicode('fio',None)
+    studnum = request.forms.getunicode('studnum',None)
+    session = Session()
+    userdata = session.query(User).filter_by(username=username).first()
+    if fio:
+        userdata.fio = fio
+    if studnum:
+        userdata.studnum = studnum
+    session.commit()
+    return dict(username = username, fio = fio, studnum = studnum)
+
 @app.route(settings.PREFIX + '/user', method = 'POST')
 @app.route(settings.PREFIX + '/user/', method = 'POST')
 @view('userupdate')
-def update_user2():
+def update_user4():
     user = normaliseuser(getcurrentuser())
     fio = request.forms.getunicode('fio',None)
     studnum = request.forms.getunicode('studnum',None)
