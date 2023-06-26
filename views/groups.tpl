@@ -2,7 +2,7 @@
 %import settings
 <h1>Управление группами</h1>
 <table border=1>
-<tr><th>Группа</th><th>Пользователи</th></tr>
+<tr><th>Группа</th><th>Пользователи</th><th>Список группы<br/>в .csv</th></tr>
 %for i in data:
 	<tr>
 		<td><a href={{ settings.PREFIX }}/groups/{{i[0]}}>{{i[0]}}</a></td>
@@ -16,6 +16,9 @@
                 %end
 		%end 
 		</td>
+                <td>
+                        <a href={{ settings.PREFIX }}/grouplist/{{i[0]}}.csv>Скачать</a>
+                </td>
 	</tr>
 %end
 </table>
