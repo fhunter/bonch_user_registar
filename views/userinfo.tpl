@@ -13,6 +13,10 @@
 <tr>
 	<td class=field_name>Номер студенческого билета:</td>
 	<td class=field_value>{{studnumber}}</td></tr>
+%from utils import getcurrentuser, normaliseuser, is_in_groups
+%if is_in_groups(normaliseuser(getcurrentuser()), settings.ADMINGROUPS):
+<tr><td class=field_name></td><td class=field_value align=right><a href={{settings.PREFIX}}/user/{{username}}><button>Редактировать</button></a></td></tr>
+%end
 <tr>
 	<td class=field_name>Дисковая квота:</td>
 	<td class=field_value>
