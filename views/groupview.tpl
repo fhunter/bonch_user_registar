@@ -24,7 +24,7 @@
 <th class=field_name>ФИО</th>
 %end
 %if param['number']:
-<th class=field_name>Номер<br/>студенческого</th>
+<th class=field_name>Номер<br/>студенческого<br/>билета</th>
 %end
 %if param['quota']:
 <th class=field_name>Квота</th>
