@@ -3,12 +3,13 @@
 
 """ Main web app module """
 
+import csv
 import pwd
 import grp
 import base64
 import io
 import bottle
-from bottle import view, request, static_file, abort, redirect
+from bottle import view, request, response, static_file, abort, redirect
 from sqlalchemy import or_, func
 import qrcode
 import gpw
@@ -272,7 +273,7 @@ def show_userinfo(username):
         applied = userinfo["applied"] )
 
 @app.route(settings.PREFIX + '/reset/<username:re:[a-zA-Z0-9_][a-zA-Z0-9_.]+>')
-@require_users(settings.QUOTAPROCESS)
+@require_groups(settings.ADMINGROUPS)
 @view('passwordreset')
 def reset_password(username):
     newpassword=resetpassword(username)
@@ -291,7 +292,7 @@ def reset_password(username):
         qrcode = base64.b64encode(image_file.getvalue()) )
 
 @app.route(settings.PREFIX + '/resync')
-@require_groups(settings.ADMINGROUPS)
+@require_users(settings.QUOTAPROCESS)
 def resync_groups():
     counts = {}
     counts['passwd'] = 0
@@ -331,6 +332,26 @@ def show_groups():
             if i[3] and all([j.startswith(i[0]+'n') for j in i[3]]):
                 grouplist.append((i[0],i[3],))
     return dict(data = grouplist, counts = counts)
+
+@app.route(settings.PREFIX + '/grouplist/<groupname>.csv')
+@require_groups(settings.ADMINGROUPS)
+def download_grouplist(groupname):
+    group = grp.getgrnam(groupname)
+    users = []
+    if (group[2] > 1000) and (group[2] <=64000):
+        users = group[3]
+    data_list = []
+    result = io.StringIO()
+    writer = csv.writer(result, dialect=csv.excel)
+    writer.writerow(['Группа', groupname, ''])
+    writer.writerow(['','',''])
+    writer.writerow(['Пользователь', 'ФИО', 'Номер\nстуденческого\nбилета'])
+    for i in users:
+        userinfo=getuser(i)
+        writer.writerow([userinfo['username'], userinfo['fio'], userinfo['studnumber']])
+    response.content_type = "text/csv"
+#    response.set_header("Content-Disposition", f"attachment; filename={{groupname}}.csv" ))
+    return result.getvalue().encode('utf-8')
 
 #TODO
 @app.route(settings.PREFIX + '/groups/<groupname>', method= ['GET', 'POST'])
