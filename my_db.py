@@ -9,7 +9,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import sessionmaker, relationship
 
-engine = create_engine('sqlite:////opt/web/selfreg/database_.sqlite3', echo=True)
+engine = create_engine('sqlite:////opt/web/selfreg/database_.sqlite3', echo=True, connect_args={"timeout": 30})
 Session = sessionmaker(bind=engine)
 
 Base = declarative_base()
