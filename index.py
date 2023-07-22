@@ -32,6 +32,7 @@ def findusers(key):
             User.fio.like(key),
             User.studnum.like(key)
             )).all()
+    session.close()
     return result
 
 def resetpassword(username):
@@ -50,6 +51,7 @@ def resetpassword(username):
         user = session.query(User).filter_by(username=username).first()
         session.add( Queue(user_id=user.id, password=password,resetedby=currentuser))
         session.commit()
+        session.close()
     else:
         password = ""
     return password
@@ -86,6 +88,7 @@ def getuser(username):
     for i in grp.getgrall():
         if user["username"] in i[3]:
             user["groups"].append(i[0])
+    session.close()
     return user
 
 @app.error(403)
@@ -139,6 +142,7 @@ def receive_quota_update():
             else:
                 session.add(Quota(user_id=result.id, usedspace = used, softlimit = quota))
     session.commit()
+    session.close()
     currentuser = getcurrentuser()
     return dict(currentuser=currentuser)
 
@@ -172,6 +176,7 @@ def overquota():
             quota = i.softlimit,
             useddisk = i.usedspace)
         quotas.append(dictionary)
+    session.close()
     return dict(quotas = quotas)
 
 @app.route(settings.PREFIX + '/listreset')
@@ -187,6 +192,7 @@ def listreset():
         join(Queue).\
         filter(Queue.done.is_(False)).\
         order_by(Queue.date.desc()).all()
+    session.close()
     return dict(data = data)
 
 @app.route(settings.PREFIX + '/resetstats')
@@ -213,6 +219,7 @@ def resetstats():
         func.count(Queue.resetedby).label('count')).\
         group_by(Queue.resetedby).\
         order_by(func.count(Queue.resetedby).desc()).limit(10)
+    session.close()
     return dict(
         count = count,
         requests = requests,
@@ -236,6 +243,7 @@ def update_user():
             fio = ""
         if studnum is None:
             studnum = ""
+    session.close()
     return dict(username = user, fio = fio, studnum = studnum)
 
 @app.route(settings.PREFIX + '/user/<username>')
@@ -256,6 +264,7 @@ def update_user2(username):
             fio = ""
         if studnum is None:
             studnum = ""
+    session.close()
     return dict(username = username, fio = fio, studnum = studnum)
 
 @app.route(settings.PREFIX + '/user/<username>', method = 'POST')
@@ -274,6 +283,7 @@ def update_user3(username):
     if studnum:
         userdata.studnum = studnum
     session.commit()
+    session.close()
     return dict(username = username, fio = fio, studnum = studnum)
 
 @app.route(settings.PREFIX + '/user', method = 'POST')
@@ -290,6 +300,7 @@ def update_user4():
     if studnum:
         userdata.studnum = studnum
     session.commit()
+    session.close()
     return dict(username = user, fio = fio, studnum = studnum)
 
 @app.route(settings.PREFIX + '/uinfo/<username:re:[a-zA-Z0-9_][a-zA-Z0-9_.]+>')
@@ -353,6 +364,7 @@ def resync_groups():
     for i in set(userlist) - result:
         session.add(User(username=i))
     session.commit()
+    session.close()
     #cleanup end
     return dict(counts=counts, userlist = userlist)
 
