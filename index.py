@@ -330,8 +330,6 @@ def reset_password(username):
         password = newpassword,
         qrcode = base64.b64encode(image_file.getvalue()) )
 
-@app.route(settings.PREFIX + '/resync')
-@require_users(settings.QUOTAPROCESS)
 def resync_groups():
     counts = {}
     counts['passwd'] = 0
@@ -357,6 +355,11 @@ def resync_groups():
     session.commit()
     #cleanup end
     return dict(counts=counts, userlist = userlist)
+
+@app.route(settings.PREFIX + '/resync')
+@require_users(settings.QUOTAPROCESS)
+def resync_groups2():
+    return resync_groups()
 
 @app.route(settings.PREFIX + '/groups')
 @require_groups(settings.ADMINGROUPS)
