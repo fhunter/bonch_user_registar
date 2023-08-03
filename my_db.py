@@ -1,5 +1,5 @@
 # vim: set fileencoding=utf-8 :
-#import secret
+import secret
 
 """ Database access abstraction module """
 
@@ -9,7 +9,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import sessionmaker, relationship
 
-engine = create_engine('sqlite:////opt/web/selfreg/database_.sqlite3', echo=True, connect_args={"timeout": 30})
+engine = create_engine(f"mysql+pymysql://{secret.USERNAME}:{secret.PASSWORD}@localhost/{secret.DATABASE}?charset=utf8mb4", echo=True)
 Session = sessionmaker(bind=engine)
 
 Base = declarative_base()
@@ -21,9 +21,9 @@ class User(Base):
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True)
-    username = Column(String, unique=True, nullable =False)
-    fio = Column(String, nullable = False, default = "")
-    studnum = Column(String, nullable = False, default ="")
+    username = Column(String(64), unique=True, nullable =False)
+    fio = Column(String(512), nullable = False, default = "")
+    studnum = Column(String(64), nullable = False, default ="")
     quota = relationship(
         "Quota",
         uselist = False,
@@ -40,10 +40,10 @@ class Queue(Base):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     username = relationship("User", back_populates="queue")
-    password = Column(String,nullable=False)
+    password = Column(String(512),nullable=False)
     date = Column(DateTime,nullable=False, default=datetime.datetime.now())
     done = Column(Boolean, nullable=False, default=False)
-    resetedby = Column(String)
+    resetedby = Column(String(512))
 
     def __repr__(self):
         return "<Queue(username='%s', password='%s', date='%s' done='%s' resetby='%s')>" % (
