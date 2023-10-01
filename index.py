@@ -284,7 +284,7 @@ def update_user3(username):
         userdata.studnum = studnum
     session.commit()
     session.close()
-    return dict(username = username, fio = fio, studnum = studnum)
+    return dict(username = username, fio = fio, studnum = studnum, updated=True)
 
 @app.route(settings.PREFIX + '/user', method = 'POST')
 @app.route(settings.PREFIX + '/user/', method = 'POST')
@@ -301,7 +301,7 @@ def update_user4():
         userdata.studnum = studnum
     session.commit()
     session.close()
-    return dict(username = user, fio = fio, studnum = studnum)
+    return dict(username = user, fio = fio, studnum = studnum, updated=True)
 
 @app.route(settings.PREFIX + '/uinfo/<username:re:[a-zA-Z0-9_][a-zA-Z0-9_.]+>')
 @require_groups(settings.ADMINGROUPS)
