@@ -9,7 +9,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import sessionmaker, relationship
 
-engine = create_engine(f"mysql+pymysql://{secret.USERNAME}:{secret.PASSWORD}@localhost/{secret.DATABASE}?charset=utf8mb4", echo=True)
+engine = create_engine(f"mysql+pymysql://{secret.USERNAME}:{secret.PASSWORD}@localhost/{secret.DATABASE}?charset=utf8mb4", echo=False)
 Session = sessionmaker(bind=engine)
 
 Base = declarative_base()
