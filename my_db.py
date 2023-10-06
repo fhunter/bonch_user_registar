@@ -8,6 +8,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.sql import func
 
 engine = create_engine(f"mysql+pymysql://{secret.USERNAME}:{secret.PASSWORD}@localhost/{secret.DATABASE}?charset=utf8mb4", echo=False)
 Session = sessionmaker(bind=engine)
@@ -41,7 +42,7 @@ class Queue(Base):
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     username = relationship("User", back_populates="queue")
     password = Column(String(512),nullable=False)
-    date = Column(DateTime,nullable=False, default=datetime.datetime.now())
+    date = Column(DateTime,nullable=False, default=func.now())
     done = Column(Boolean, nullable=False, default=False)
     resetedby = Column(String(512))
 
