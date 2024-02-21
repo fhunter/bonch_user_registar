@@ -187,7 +187,7 @@ def unregistered():
     result = session.query(
         Quota.user_id,
         User.username, User.fio, Quota.softlimit, Quota.usedspace).join(User).\
-        filter(Quota.usedspace>=150).\
+        filter(Quota.usedspace>settings.QUOTA_UNUSED).\
         filter(User.fio=="").all()
     users = []
     for i in result:
