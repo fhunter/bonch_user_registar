@@ -5,6 +5,7 @@
 % if is_in_groups(getcurrentuser(), settings.ADMINGROUPS):
 <a href={{ settings.PREFIX }}/listreset><button>Очередь сброса</button></a>
 <a href={{ settings.PREFIX }}/listoverquota><button>С превышением квоты</button></a>
+<a href={{ settings.PREFIX }}/listunregistered><button>Без регистрации</button></a>
 <a href={{ settings.PREFIX }}/resetstats><button>Статистика</button></a>
 <a href={{ settings.PREFIX }}/groups><button>Группы</button></a>
 % if defined ('username'):

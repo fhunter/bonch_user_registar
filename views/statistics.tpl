@@ -25,5 +25,10 @@
 </table>
 %end
 
+%if defined('registered'):
+<h2>Регистрации</h2>
+
+%endif
+
 %include menu
 %include footer

@@ -179,6 +179,27 @@ def overquota():
     session.close()
     return dict(quotas = quotas)
 
+@app.route(settings.PREFIX + '/listunregistered')
+@require_groups(settings.ADMINGROUPS)
+@view('unregistered')
+def unregistered():
+    session = Session()
+    result = session.query(
+        Quota.user_id,
+        User.username, User.fio, Quota.usedspace).join(User).\
+        filter(Quota.usedspace>=150).\
+        filter(User.fio=="").all()
+    users = []
+    for i in result:
+        dictionary = dict(
+            username = i.username,
+            fio = i.fio,
+            quota = i.softlimit,
+            useddisk = i.usedspace)
+        users.append(dictionary)
+    session.close()
+    return dict(users = users)
+
 @app.route(settings.PREFIX + '/listreset')
 @require_groups(settings.ADMINGROUPS)
 @view('listreset')
