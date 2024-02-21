@@ -1,7 +1,7 @@
 %include header
 %import settings
 <h1>Пользователи без регистрации, но с файлами</h1>
-<h5>Всего: {{ len(users) }}</h5>
+<h3>Всего: {{ len(users) }}</h3>
 <table>
 	<tr>
 		<td class=field_name>Пользователь</td>
