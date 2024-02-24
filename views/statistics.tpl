@@ -1,4 +1,5 @@
 %include header
+%import settings
 <h1>Статистика сброса пароля</h1>
 <table><tr><td class=field_name>Всего пароли сброшены:</td><td class=field_value> {{count}} раз</td></tr>
 <tr><td class=field_name>В очереди на сброс паролей</td><td class=field_value> {{requests}} запросов</td></tr>
@@ -12,7 +13,10 @@
 <h2>Наиболее часто сбрасываемые пароли</h2><br>
 <table><tr><td class=field_name>Пользователь</td><td class=field_name>сброшен</td></tr>
 %for i in frequency:
-<tr><td class=field_value>{{i.username}}</td><td class=field_value>{{i.count}} раз</td></tr>
+<tr>
+    <td class=field_value><a href={{ settings.PREFIX }}/uinfo/{{i.username}}>{{i.username}}</a></td>
+    <td class=field_value>{{i.count}} раз</td>
+</tr>
 %end
 </table>
 %end
@@ -20,7 +24,10 @@
 <h2>Top 10 лаборантов чаще всего сбрасывавших пароли</h2><br>
 <table><tr><td class=field_name>Пользователь</td><td class=field_name>сбросил</td></tr>
 %for i in topresets:
-<tr><td class=field_value>{{i.resetedby}}</td><td class=field_value>{{i.count}} раз</td></tr>
+<tr>
+    <td class=field_value><a href={{ settings.PREFIX }}/uinfo/{{i.resetedby}}>{{i.resetedby}}</a></td>
+    <td class=field_value>{{i.count}} раз</td>
+</tr>
 %end
 </table>
 %end
