@@ -8,6 +8,7 @@ import pwd
 import grp
 import base64
 import io
+import datetime
 import bottle
 from bottle import view, request, response, static_file, abort, redirect
 from sqlalchemy import or_, func
@@ -55,6 +56,17 @@ def resetpassword(username):
     else:
         password = ""
     return password
+
+def getuserqueue(username):
+    session = Session()
+    month_ago = datetime.datetime.now() - datetime.timedelta(weeks=4)
+    total = session.query(Queue.username).filter(Queue.username==username).count()
+    month = session.query(
+                Queue.username,
+                Queue.date
+                ).filter(Queue.username==username).filter(Queue.date > month_ago).count()
+    session.close()
+    return (total, month)
 
 def getuser(username):
     #DONE
