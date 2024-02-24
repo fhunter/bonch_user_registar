@@ -351,8 +351,9 @@ def show_userinfo(username):
     changed = dict()
     changed["who"] = userinfo["queue_who"]
     changed["when"] = userinfo["queue_date"]
-    changed["total"] = -1
-    changed["month"] = -1
+    tmp = getuserqueue(username)
+    changed["total"] = tmp[0]
+    changed["month"] = tmp[1]
     return dict(
         username = username,
         fio = userinfo["fio"],
