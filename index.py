@@ -49,10 +49,22 @@ def resetpassword(username):
         password=gpw.GPW(6).password
         currentuser = getcurrentuser()
         session = Session()
-        user = session.query(User).filter_by(username=username).first()
-        session.add( Queue(user_id=user.id, password=password,resetedby=currentuser))
-        session.commit()
-        session.close()
+        tmp = session.query(
+                    User.username,
+                    Queue.done,
+                    Queue.password
+                    ).join(Queue).\
+                    filter(User.username==username).\
+                    filter(Queue.done.is_(False)).\
+                    order_by(Queue.date.desc()).first()
+        if tmp:
+            # Queue has data
+            password = tmp.password
+        else:
+            user = session.query(User).filter_by(username=username).first()
+            session.add( Queue(user_id=user.id, password=password,resetedby=currentuser))
+            session.commit()
+            session.close()
     else:
         password = ""
     return password
