@@ -21,7 +21,7 @@
 </table>
 %end
 %if defined('topresets'):
-<h2>Top 10 лаборантов чаще всего сбрасывавших пароли</h2><br>
+<h2>Top 15 лаборантов чаще всего сбрасывавших пароли</h2><br>
 <table><tr><td class=field_name>Пользователь</td><td class=field_name>сбросил</td></tr>
 %for i in topresets:
 <tr>

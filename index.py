@@ -254,12 +254,12 @@ def resetstats():
         User.username,
         func.count(Queue.user_id).label('count')).\
         join(User).group_by(Queue.user_id).\
-        order_by(func.count(Queue.user_id).desc()).limit(10)
+        order_by(func.count(Queue.user_id).desc()).limit(15)
     topresets = session.query(
         Queue.resetedby,
         func.count(Queue.resetedby).label('count')).\
         group_by(Queue.resetedby).\
-        order_by(func.count(Queue.resetedby).desc()).limit(10)
+        order_by(func.count(Queue.resetedby).desc()).limit(15)
     session.close()
     return dict(
         count = count,
