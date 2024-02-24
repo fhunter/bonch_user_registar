@@ -60,11 +60,14 @@ def resetpassword(username):
 def getuserqueue(username):
     session = Session()
     month_ago = datetime.datetime.now() - datetime.timedelta(weeks=4)
-    total = session.query(Queue.username).filter(Queue.username==username).count()
-    month = session.query(
-                Queue.username,
+    total = session.query(
+                User.username,
                 Queue.date
-                ).filter(Queue.username==username).filter(Queue.date > month_ago).count()
+                ).join(Queue).filter(User.username==username).count()
+    month = session.query(
+                User.username,
+                Queue.date
+                ).join(Queue).filter(User.username==username).filter(Queue.date > month_ago).count()
     session.close()
     return (total, month)
 
