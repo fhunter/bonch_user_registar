@@ -60,6 +60,19 @@
             ❎
             %end
             </td></tr>
+            <tr>
+                <td class=field_name>Последняя смена:</td>
+                <td class=field_value>{{changed["who"]}}<br/>{{changed["when"]}}</td>
+            </tr>
+            <tr>
+                <td class=field_name>Сменён всего:</td>
+                <td class=field_value>{{changed["total"]}} раз</td>
+            </tr>
+            <tr>
+                <td class=field_name>Сменён за месяц:</td>
+                <td class=field_value>{{changed["month"]}} раз</td>
+            </tr>
+
         </table>
     </td>
 </tr>

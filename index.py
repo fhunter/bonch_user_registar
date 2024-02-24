@@ -69,15 +69,20 @@ def getuser(username):
         User.username,
         Queue.password,
         Queue.done,
+        Queue.resetedby,
         Queue.date).\
         join(Queue).\
         filter(User.username==username).\
         order_by(Queue.date.desc()).limit(1).all()
     user["password"]=""
     user["applied"]=False
+    user["queue_date"]=None
+    user["queue_who"]="N/A"
     if queue:
         user["password"]=queue[0].password
         user["applied"]=queue[0].done
+        user["queue_date"]=queue[0].date
+        user["queue_who"]=queue[0].resetedby
     user["fio"] = result.fio
     user["studnumber"] = result.studnum
     user["quota"] = result.quota.softlimit
@@ -331,6 +336,11 @@ def show_userinfo(username):
     userinfo = getuser(username)
     quota = int(userinfo["quota"])
     useddisk = int(userinfo["useddiskspace"])
+    changed = dict()
+    changed["who"] = userinfo["queue_who"]
+    changed["when"] = userinfo["queue_date"]
+    changed["total"] = -1
+    changed["month"] = -1
     return dict(
         username = username,
         fio = userinfo["fio"],
@@ -340,6 +350,7 @@ def show_userinfo(username):
         groups = userinfo["groups"],
         issued=False,
         logged_in=False,
+        changed = changed,
         password = userinfo["password"],
         applied = userinfo["applied"] )
 
