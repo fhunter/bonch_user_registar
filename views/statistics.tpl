@@ -16,7 +16,7 @@
 <tr>
     <td class=field_value><a href={{ settings.PREFIX }}/uinfo/{{i.username}}>{{i.username}}</a></td>
     <td class=field_value>{{i.count}} раз</td>
-    <td class=field_value>{{i.last}}</td>
+    <td class=field_value>{{i.date}}</td>
 </tr>
 %end
 </table>

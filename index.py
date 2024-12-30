@@ -264,6 +264,7 @@ def resetstats():
     frequency = session.query(
         Queue.user_id,
         User.username,
+        func.max(Queue.date).label('date'),
         func.count(Queue.user_id).label('count')).\
         join(User).group_by(Queue.user_id).\
         order_by(func.count(Queue.user_id).desc()).limit(15)
