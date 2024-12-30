@@ -11,11 +11,12 @@
 </td></tr></table>
 %if defined('frequency'):
 <h2>Наиболее часто сбрасываемые пароли</h2><br>
-<table><tr><td class=field_name>Пользователь</td><td class=field_name>сброшен</td></tr>
+<table><tr><td class=field_name>Пользователь</td><td class=field_name>сброшен</td><td class=field_name>Последний раз</td></tr>
 %for i in frequency:
 <tr>
     <td class=field_value><a href={{ settings.PREFIX }}/uinfo/{{i.username}}>{{i.username}}</a></td>
     <td class=field_value>{{i.count}} раз</td>
+    <td class=field_value>{{i.last}}</td>
 </tr>
 %end
 </table>
