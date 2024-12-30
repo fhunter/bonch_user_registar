@@ -39,8 +39,8 @@ for i in subprocess.check_output(['/usr/sbin/repquota', '-O', 'csv', '-c', '/hom
     quota=line[4]
     data.append({ 'username': username, 'used': used, 'quota': quota})
     if len(data)>1000:
-        send_data_with_retry(s, 'http://srv-1.dcti.sut.ru/selfreg/process/quota', data, 50)
+        send_data_with_retry(s, 'https://srv-1.dcti.sut.ru/selfreg/process/quota', data, 50)
         data=[]
 
 
-send_data_with_retry(s, 'http://srv-1.dcti.sut.ru/selfreg/process/quota', data, 50)
+send_data_with_retry(s, 'https://srv-1.dcti.sut.ru/selfreg/process/quota', data, 50)
