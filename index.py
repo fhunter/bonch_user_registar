@@ -285,7 +285,25 @@ def resetstats():
 @app.route(settings.PREFIX + '/gitrepos/')
 @view('gitrepos')
 def gitrepos():
-    return dict(repos=[])
+    repos = []
+    headers = { "Content-type": "application/json", "Authorization" : "token " + AUTH_TOKEN }
+    do_repos = False
+    r = requests.get(BASE_URL + "/api/v1/admin/users/",headers=headers)
+    for i in r.json():
+        if i['is_admin']:
+            continue
+        login_name = i['login']
+        do_repos = False
+        try:
+            pwd.getpwnam(login_name)
+        except :
+            do_repos = True
+        if do_repos:
+            r1 = requests.get(BASE_URL + f"/api/v1/users/{login_name}/repos", headers=headers)
+            for j in r1.json():
+                temp = {username: login_name, repo_name: j['name']}
+                repos.append(temp)
+    return dict(repos=repos)
 
 @app.route(settings.PREFIX + '/user')
 @app.route(settings.PREFIX + '/user/')
