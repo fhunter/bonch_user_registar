@@ -286,9 +286,9 @@ def resetstats():
 @view('gitrepos')
 def gitrepos():
     repos = []
-    headers = { "Content-type": "application/json", "Authorization" : "token " + AUTH_TOKEN }
+    headers = { "Content-type": "application/json", "Authorization" : "token " + settings.GITEA_KEY }
     do_repos = False
-    r = requests.get(BASE_URL + "/api/v1/admin/users/",headers=headers)
+    r = requests.get(settings.BASE_URL + "/api/v1/admin/users/",headers=headers)
     for i in r.json():
         if i['is_admin']:
             continue
@@ -299,9 +299,9 @@ def gitrepos():
         except :
             do_repos = True
         if do_repos:
-            r1 = requests.get(BASE_URL + f"/api/v1/users/{login_name}/repos", headers=headers)
+            r1 = requests.get(settings.BASE_URL + f"/api/v1/users/{login_name}/repos", headers=headers)
             for j in r1.json():
-                temp = {username: login_name, repo_name: j['name']}
+                temp = {"username": login_name, "repo_name": j['name']}
                 repos.append(temp)
     return dict(repos=repos)
 
