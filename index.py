@@ -15,6 +15,7 @@ from sqlalchemy import or_, func
 import qrcode
 import gpw
 import settings
+from secret import GITEA_KEY
 from my_db import User, Queue, Quota, Session
 from utils import getcurrentuser, normaliseuser
 from utils import require_groups, require_users
@@ -286,7 +287,7 @@ def resetstats():
 @view('gitrepos')
 def gitrepos():
     repos = []
-    headers = { "Content-type": "application/json", "Authorization" : "token " + settings.GITEA_KEY }
+    headers = { "Content-type": "application/json", "Authorization" : "token " + GITEA_KEY }
     do_repos = False
     r = requests.get(settings.BASE_URL + "/api/v1/admin/users/",headers=headers)
     for i in r.json():
