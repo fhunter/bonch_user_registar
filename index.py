@@ -10,6 +10,7 @@ import base64
 import io
 import datetime
 import bottle
+import requests
 from bottle import view, request, response, static_file, abort, redirect
 from sqlalchemy import or_, func
 import qrcode
