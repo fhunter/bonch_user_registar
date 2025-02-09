@@ -8,6 +8,7 @@
     <td class=field_value><a href={{ settings.PREFIX }}/uinfo/{{i.username}}>{{i["username"]}}</a></td>
     <td class=field_value>{{i["repo_name"]}}</td>
 </tr>
+%end
 </table>
 
 %include menu
