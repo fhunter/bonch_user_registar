@@ -8,6 +8,7 @@
 <a href={{ settings.PREFIX }}/listunregistered><button>Без регистрации</button></a>
 <a href={{ settings.PREFIX }}/resetstats><button>Статистика</button></a>
 <a href={{ settings.PREFIX }}/groups><button>Группы</button></a>
+<a href={{ settings.PREFIX }}/gitrepos><button>Репозитории</button></a>
 % if defined ('username'):
 	<a href={{ settings.PREFIX }}/reset/{{username}}><button>Сбросить пароль</button></a>
 % end
