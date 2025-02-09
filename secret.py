@@ -1,3 +1,4 @@
 USERNAME=''
 PASSWORD=''
 DATABASE='selfreg'
+GITEA_KEY=''

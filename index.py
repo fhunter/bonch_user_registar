@@ -538,16 +538,6 @@ def send_js(filename):
     #DONE
     return static_file(filename, root='./files/', mimetype='text/javascript')
 
-class StripPathMiddleware:
-    '''
-    Get that slash out of the request
-    '''
-    def __init__(self, attr):
-        self.attr = attr
-    def __call__(self, environ, h_data):
-        environ['PATH_INFO'] = environ['PATH_INFO'].rstrip('/')
-        return self.a(environ, h_data)
-
 if __name__ == '__main__':
     bottle.run(app=app,
         debug=True, reloader=True,
