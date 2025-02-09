@@ -281,6 +281,12 @@ def resetstats():
         frequency = frequency,
         topresets = topresets)
 
+@app.route(settings.PREFIX + '/gitrepos')
+@app.route(settings.PREFIX + '/gitrepos/')
+@view('gitrepos')
+def gitrepos():
+    return dict(repos=[])
+
 @app.route(settings.PREFIX + '/user')
 @app.route(settings.PREFIX + '/user/')
 @view('userupdate')
