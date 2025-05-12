@@ -27,8 +27,8 @@
 <table><tr><td class=field_name>Сбошен</td><td class=field_name>Пользователь</td><td class=field_name>Дата</td></tr>
 %for i in lastresets:
 <tr>
-    <td class=field_value>{{i.resetedby}} раз</td>
-    <td class=field_value><a href={{ settings.PREFIX }}/uinfo/{{i.username}}>{{i.username}}</a></td>
+    <td class=field_value>{{i.resetedby}}</td>
+    <td class=field_value><a href={{ settings.PREFIX }}/uinfo/{{i.username.username}}>{{i.username.username}}</a></td>
     <td class=field_value>{{i.date}}</td>
 </tr>
 %end
