@@ -275,13 +275,15 @@ def resetstats():
         func.count(Queue.resetedby).label('count')).\
         group_by(Queue.resetedby).\
         order_by(func.count(Queue.resetedby).desc()).limit(15)
+    lastresets = session.query(Queue).order_by(Queue.date.desc()).limit(15)
     session.close()
     return dict(
         count = count,
         requests = requests,
         date = date,
         frequency = frequency,
-        topresets = topresets)
+        topresets = topresets,
+        lastresets = lastresets)
 
 @app.route(settings.PREFIX + '/gitrepos')
 @app.route(settings.PREFIX + '/gitrepos/')
