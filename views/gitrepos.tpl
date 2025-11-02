@@ -5,7 +5,7 @@
 <table><tr><td class=field_name>Пользователь</td><td class=field_name>Репозиторий</td></tr>
 %for i in repos:
 <tr>
-    <td class=field_value><a href="https://gitea.pivt.spbgut.ru/{{["username"]}}/">{{i["username"]}}</a></td>
+    <td class=field_value><a href="https://gitea.pivt.spbgut.ru/{{i["username"]}}/">{{i["username"]}}</a></td>
     <td class=field_value><a href="https://gitea.pivt.spbgut.ru/-/admin/repos?q={{i["repo_name"]}}&sort=recentupdate">{{i["repo_name"]}}</a></td>
 </tr>
 %end
