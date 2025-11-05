@@ -6,7 +6,7 @@
 <table>
     <tr><td class=field_name>Пользователь</td></tr>
 %for i in users:
-    <tr><td class=field_value><a href="https://gitea.pivt.spbgut.ru/{{i["username"]}}/">{{i["username"]}}</a></td></tr>
+    <tr><td class=field_value><a href="https://gitea.pivt.spbgut.ru/{{i}}/">{{i}}</a></td></tr>
 %end
 </table>
 
