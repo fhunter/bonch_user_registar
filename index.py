@@ -293,6 +293,7 @@ def gitrepos():
     headers = { "Content-type": "application/json", "Authorization" : "token " + GITEA_KEY }
     do_repos = False
     r = requests.get(settings.BASE_URL + "/api/v1/admin/users/",headers=headers)
+    users = []
     for i in r.json():
         if i['is_admin']:
             continue
@@ -303,11 +304,12 @@ def gitrepos():
         except :
             do_repos = True
         if do_repos:
+            users.append(login_name)
             r1 = requests.get(settings.BASE_URL + f"/api/v1/users/{login_name}/repos", headers=headers)
             for j in r1.json():
                 temp = {"username": login_name, "repo_name": j['name']}
                 repos.append(temp)
-    return dict(repos=repos)
+    return dict(repos=repos, users=users)
 
 @app.route(settings.PREFIX + '/user')
 @app.route(settings.PREFIX + '/user/')
