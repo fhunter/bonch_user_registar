@@ -1,4 +1,4 @@
-%include header
+%include('header')
 %import settings
 <h1>Просмотр группы {{groupname}}</h1>
 
@@ -45,7 +45,7 @@
 %end
 %if param['quota']:
 <td class=field_value>
-%include quotatable used=i['useddiskspace'], quota=i['quota']
+%include('quotatable',used=i['useddiskspace'], quota=i['quota'])
 </td>
 %end
 %if param['password']:
@@ -61,5 +61,5 @@
 </tr>
 %end
 </table>
-%include menu
-%include footer
+%include('menu')
+%include('footer')

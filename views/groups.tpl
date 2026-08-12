@@ -1,4 +1,4 @@
-%include header
+%include('header')
 %import settings
 <h1>Управление группами</h1>
 <table border=1>
@@ -26,5 +26,5 @@
 Quota table = {{counts['quota']}} </br>
 Users table = {{counts['users']}} </br>
 Passwd file = {{counts['passwd']}} </br>
-%include menu
-%include footer
+%include('menu')
+%include('footer')

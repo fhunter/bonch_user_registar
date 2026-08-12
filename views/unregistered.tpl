@@ -1,4 +1,4 @@
-%include header
+%include('header')
 %import settings
 <h1>Пользователи без регистрации, но с файлами</h1>
 <h3>Всего: {{ len(users) }}</h3>
@@ -17,11 +17,11 @@
 	<td class=field_value>{{i["quota"]}}</td>
 	<td class=field_value>{{i["useddisk"]}}</td>
 	<td class=field_value>
-        %include quotatable used=i["useddisk"], quota=i["quota"]
+        %include('quotatable',used=i["useddisk"], quota=i["quota"])
     </td>
 </tr>
 %end
 </table>
 
-%include menu
-%include footer
+%include('menu')
+%include('footer')

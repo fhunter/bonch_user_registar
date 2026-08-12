@@ -1,4 +1,4 @@
-%include header title = "Обновление пользовательских данных"
+%include('header', title = "Обновление пользовательских данных")
 %import settings
 
 <h1>Обновление регистрационных данных</h1>
@@ -47,5 +47,5 @@
 	</form>
 	
 
-%include footer	
+%include('footer')
 

@@ -1,4 +1,4 @@
-%include header
+%include('header')
 %import settings
 <h1>Git репозитории</h1>
 <h2>Удалённые пользователи<h2>
@@ -22,5 +22,5 @@
 %end
 </table>
 
-%include menu
-%include footer
+%include('menu')
+%include('footer')

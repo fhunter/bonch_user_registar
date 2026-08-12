@@ -1,4 +1,4 @@
-%include header
+%include('header')
 <h1>Очередь на сброс паролей</h1>
 <table>
 	<tr>
@@ -17,5 +17,5 @@
 % end
 </table>
 
-%include menu
-%include footer
+%include('menu')
+%include('footer')

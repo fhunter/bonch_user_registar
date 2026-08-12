@@ -1,4 +1,4 @@
-%include header
+%include('header')
 %import settings
 <h1>Статистика сброса пароля</h1>
 <table><tr><td class=field_name>Всего пароли сброшены:</td><td class=field_value> {{count}} раз</td></tr>
@@ -53,5 +53,5 @@
 
 %endif
 
-%include menu
-%include footer
+%include('menu')
+%include('footer')

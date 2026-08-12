@@ -1,4 +1,4 @@
-%include header
+%include('header')
 %import settings
 <h1>Превысившие квоту</h1>
 <table>
@@ -20,5 +20,5 @@
 %end
 </table>
 
-%include menu
-%include footer
+%include('menu')
+%include('footer')
