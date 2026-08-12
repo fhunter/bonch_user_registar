@@ -14,7 +14,7 @@
 	<td class=field_value>{{i["quota"]}}</td>
 	<td class=field_value>{{i["useddisk"]}}</td>
 	<td class=field_value>
-        %include quotatable used=i["useddisk"], quota=i["quota"]
+        %include('quotatable', used=i["useddisk"], quota=i["quota"])
     </td>
 </tr>
 %end
