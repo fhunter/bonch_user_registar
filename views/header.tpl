@@ -8,5 +8,5 @@
 <link rel="stylesheet" media="print" type="text/css" href="{{settings.PREFIX}}/print.css" />
 <title>{{title}}</title>
 </head><body>
-%include menu
+%include('menu')
 <br>

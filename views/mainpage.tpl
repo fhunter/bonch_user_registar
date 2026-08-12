@@ -1,4 +1,4 @@
-%include header
+%include('header')
 %import settings
 %from utils import getcurrentuser, is_in_groups
 <h1>Информация о пользователях и сброс паролей</h1>
@@ -16,5 +16,5 @@
 % end
 % end
 <br>
-%include menu
-%include footer
+%include('menu')
+%include('footer')
