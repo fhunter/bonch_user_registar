@@ -48,7 +48,7 @@ def resetpassword(username):
         return ""
     #check that user is a student and generate password and qrcode from it
     if passwd[3]==students_gid:
-        password=gpw.GPW(6).password
+        password=gpw.GPW(8).password
         currentuser = getcurrentuser()
         session = Session()
         tmp = session.query(

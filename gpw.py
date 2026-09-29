@@ -744,4 +744,4 @@ class GPW:
 
 if __name__ == "__main__":
     for _ in range(1):
-        print(GPW(6).password)
+        print(GPW(8).password)
