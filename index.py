@@ -413,7 +413,19 @@ def update_user4():
 def show_userinfo(username):
     userinfo = getuser(username)
     quota = int(userinfo["quota"])
+    quota_hard = int(userinfo["quota_hard"])   # жёсткий лимит
+    quota_grace = int(userinfo["quota_grace"]) # время когда истечёт или 0, если уже/не валидно
     useddisk = int(userinfo["useddiskspace"])
+    if quota_grace != 0:
+        timediff = datetime.datetime.fromtimestamp(quota_grace) - datetime.datetime.now()
+        if timediff.seconds < 0:
+            # Уже
+            quota_grace = str(-timediff.days) + " дней назад"
+        else:
+            # В будущем
+            quota_grace = "через " + str(timediff.days) + " дней"
+    else:
+        quota_grace = None
     changed = dict()
     changed["who"] = userinfo["queue_who"]
     changed["when"] = userinfo["queue_date"]
@@ -425,6 +437,8 @@ def show_userinfo(username):
         fio = userinfo["fio"],
         studnumber = userinfo["studnumber"],
         quotaused= useddisk,
+        quotahard= quota_hard,
+        quotagrace= quota_grace,
         quotaavail = quota,
         groups = userinfo["groups"],
         issued=False,
