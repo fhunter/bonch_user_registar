@@ -418,12 +418,7 @@ def show_userinfo(username):
     useddisk = int(userinfo["useddiskspace"])
     if quota_grace != 0:
         timediff = datetime.datetime.fromtimestamp(quota_grace) - datetime.datetime.now()
-        if timediff.seconds < 0:
-            # Уже
-            quota_grace = str(-timediff.days) + " дней назад"
-        else:
-            # В будущем
-            quota_grace = "через " + str(timediff.days) + " дней"
+        quota_grace = timediff.days
     else:
         quota_grace = None
     changed = dict()
