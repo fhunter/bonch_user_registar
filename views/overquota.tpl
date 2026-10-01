@@ -6,8 +6,8 @@
 	<tr>
 		<td class=field_name>Пользователь</td>
 		<td class=field_name>Квота</td>
-        <td class=field_name>Жёсткий лимит</td>
 		<td class=field_name>Использовано</td>
+        <td class=field_name>Жёсткий лимит</td>
 		<td class=field_name>Доступно</td>
         <td class=field_name>Блокировка</td>
 	</tr>
