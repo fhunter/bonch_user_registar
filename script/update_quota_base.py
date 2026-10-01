@@ -5,12 +5,16 @@ import subprocess
 import requests
 from requests_kerberos import HTTPKerberosAuth, DISABLED, OPTIONAL, REQUIRED
 
-top=True
-data=[]
+top = True
+data = []
+
 
 def send_data(session, url, data):
-    response = session.post(url, auth=HTTPKerberosAuth(mutual_authentication=REQUIRED), json = data)
+    response = session.post(
+        url, auth=HTTPKerberosAuth(mutual_authentication=REQUIRED), json=data
+    )
     return response.status_code
+
 
 def send_data_with_retry(session, url, data, retries):
     counter = 0
@@ -25,22 +29,37 @@ def send_data_with_retry(session, url, data, retries):
         return False
     return True
 
-s= requests.Session()
-for i in subprocess.check_output(['/usr/sbin/repquota', '-O', 'csv', '-c', '/home']).splitlines():
+
+s = requests.Session()
+for i in subprocess.check_output(
+    ["/usr/sbin/repquota", "-O", "csv", "-p", "-c", "/home"]
+).splitlines():
     if top:
-        top=False
+        top = False
         continue
-    t=i.decode('utf-8')
-    line=t.split(',')
-    if line[0]=='root':
+    t = i.decode("utf-8")
+    line = t.split(",")
+    if line[0] == "root":
         continue
-    username=line[0]
-    used=line[3]
-    quota=line[4]
-    data.append({ 'username': username, 'used': used, 'quota': quota})
-    if len(data)>1000:
-        send_data_with_retry(s, 'https://srv-1.dcti.sut.ru/selfreg/process/quota', data, 50)
-        data=[]
+    username = line[0]
+    used = line[3]
+    quota = line[4]
+    hardquota = line[5]
+    grace = line[6]
+    data.append(
+        {
+            "username": username,
+            "used": used,
+            "quota": quota,
+            "hardquota": hardquota,
+            "grace": grace,
+        }
+    )
+    if len(data) > 1000:
+        send_data_with_retry(
+            s, "https://srv-1.dcti.sut.ru/selfreg/process/quota", data, 50
+        )
+        data = []
 
 
-send_data_with_retry(s, 'https://srv-1.dcti.sut.ru/selfreg/process/quota', data, 50)
+send_data_with_retry(s, "https://srv-1.dcti.sut.ru/selfreg/process/quota", data, 50)
