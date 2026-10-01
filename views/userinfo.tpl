@@ -24,7 +24,7 @@
 		<tr><td class=field_name>использовано:</td><td class=field_value align=right>{{quotaused}}</td><td class=field_value>Кб</td></tr>
 		<tr><td class=field_name>доступно:</td><td class=field_value align=right>{{quotaavail}}</td><td class=field_value>Кб</td></tr>
         <tr><td class=field_name>жёсткий лимит:</td><td class=field_value align=right>{{quotahard}}</td><td class=field_value>Кб</td></tr>
-%if quotagrace not None:
+%if quotagrace is not None:
         <tr><td class=field_name>до лимита:</td><td class=field_value align=right>{{quotagrace}}</td><td class=field_value>Кб</td></tr>
 %end
 		</table><br>
