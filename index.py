@@ -115,6 +115,8 @@ def getuser(username):
     user["fio"] = result.fio
     user["studnumber"] = result.studnum
     user["quota"] = result.quota.softlimit
+    user["quota_hard"] = result.quota.hardlimit
+    user["quota_grace"] = result.quota.grace
     user["useddiskspace"] = result.quota.usedspace
     user["username"] = passwd[0]
     user["groups"] = []
@@ -157,24 +159,40 @@ def receive_quota_update():
             username = i['username']
             quota = int(i['quota'])
             used  = int(i['used'])
+            hardquota = 0
+            grace = 0
+            if 'hardquota' in i:
+                hardquota = int(i['hardquota'])
+            if 'grace' in i:
+                grace = int(i['grace'])
             result = session.query(User).filter(User.username==username).first()
             if result:
                 if result.quota:
                     result.quota.usedspace = used
                     result.quota.softlimit = quota
+                    result.quota.hardlimit = hardquota
+                    result.quota.grace = grace
                 else:
-                    session.add(Quota(user_id=result.id, usedspace = used, softlimit = quota))
+                    session.add(Quota(user_id=result.id, usedspace = used, softlimit = quota, hardlimit = hardquota, grace = grace))
     else:
         username = data['username']
         quota = int(data['quota'])
         used  = int(data['used'])
+        hardquota = 0
+        grace = 0
+        if 'hardquota' in i:
+            hardquota = int(i['hardquota'])
+        if 'grace' in i:
+            grace = int(i['grace'])
         result = session.query(User).filter(User.username==username).first()
         if result:
             if result.quota:
                 result.quota.usedspace = used
                 result.quota.softlimit = quota
+                result.quota.hardlimit = hardquota
+                result.quota.grace = grace
             else:
-                session.add(Quota(user_id=result.id, usedspace = used, softlimit = quota))
+                session.add(Quota(user_id=result.id, usedspace = used, softlimit = quota, hardlimit = hardquota, grace = grace))
     session.commit()
     session.close()
     currentuser = getcurrentuser()
@@ -200,7 +218,7 @@ def overquota():
     session = Session()
     result = session.query(
         Quota.user_id,
-        User.username, Quota.usedspace, Quota.softlimit).join(User).\
+        User.username, Quota.usedspace, Quota.softlimit, Quota.hardlimit, Quota.grace).join(User).\
         filter(Quota.usedspace>Quota.softlimit).\
         filter(Quota.softlimit>0).all()
     quotas = []
@@ -208,6 +226,8 @@ def overquota():
         dictionary = dict(
             username = i.username,
             quota = i.softlimit,
+            hardquota = i.hardlimit,
+            grace = i.grace,
             useddisk = i.usedspace)
         quotas.append(dictionary)
     session.close()
