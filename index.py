@@ -240,7 +240,7 @@ def unregistered():
     session = Session()
     result = session.query(
         Quota.user_id,
-        User.username, User.fio, Quota.softlimit, Quota.usedspace).join(User).\
+        User.username, User.fio, Quota.softlimit, Quota.hardlimit, Quota.usedspace).join(User).\
         filter(Quota.usedspace>settings.QUOTA_UNUSED).\
         filter(User.fio=="").all()
     users = []
@@ -249,6 +249,7 @@ def unregistered():
             username = i.username,
             fio = i.fio,
             quota = i.softlimit,
+            hardlimit = i.hardlimit,
             useddisk = i.usedspace)
         users.append(dictionary)
     session.close()

@@ -45,7 +45,7 @@
 %end
 %if param['quota']:
 <td class=field_value>
-%include('quotatable',used=i['useddiskspace'], quota=i['quota'])
+%include('quotatable',used=i['useddiskspace'], quota=i['quota'], hardquota=i['quota_hard'])
 </td>
 %end
 %if param['password']:

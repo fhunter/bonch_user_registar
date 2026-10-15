@@ -4,11 +4,35 @@ import pwd
 import grp
 from bottle import request, abort
 
-def get_used_percent(quota, used):
-    return (used*100.0)/max(quota,used+0.01)
+def get_used_percent(quota, hardquota, used):
+    if quota is None:
+        quota = 0
+    if hardquota is None:
+        hardquota = 0
+    if used is None:
+        used = 0
+    length_max = max(quota, hardquota,used) + 0.01
+    return (used*100.0)/length_max
 
-def get_available_percent(quota, used):
-    return (quota*100.0)/max(quota,used+0.01)
+def get_available_percent(quota, hardquota, used):
+    if quota is None:
+        quota = 0
+    if hardquota is None:
+        hardquota = 0
+    if used is None:
+        used = 0
+    length_max = max(quota, hardquota,used) + 0.01
+    return (quota*100.0)/length_max
+
+def get_availablehard_percent(quota, hardquota, used):
+    if quota is None:
+        quota = 0
+    if hardquota is None:
+        hardquota = 0
+    if used is None:
+        used = 0
+    length_max = max(quota, hardquota,used) + 0.01
+    return ((hardquota-quota)*100.0)/length_max
 
 def getcurrentuser():
     result = ""

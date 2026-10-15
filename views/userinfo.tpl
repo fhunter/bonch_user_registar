@@ -28,7 +28,7 @@
         <tr><td class=field_name>до лимита:</td><td class=field_value align=right>{{quotagrace}}</td><td class=field_value>Дней</td></tr>
 %end
 		</table><br>
-        %include('quotatable',used=quotaused, quota=quotaavail)
+        %include('quotatable',used=quotaused, quota=quotaavail, hardquota=quotahard)
 	</td>
 </tr>
 <tr>
