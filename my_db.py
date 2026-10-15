@@ -64,15 +64,48 @@ class Quota(Base):
         return "<Quota(username='%s', used space='%s',  softlimit='%s', hardlimit='%s', grace ends='%s')>" % (
                             self.user_id, self.usedspace, self.softlimit, self.hardlimit, self.grace)
 
-#class 
-##         printf("\"%s\"\t%d\t%d\t%d\t%d\t\"%s\"\t%d\t%d\t%d\t%d\t\"%s\""
-##                "\t%d\t%d\t%d\t%d\t%d",
-##                princstr, dprinc.princ_expire_time, dprinc.last_pwd_change,
-##                dprinc.pw_expiration, dprinc.max_life, modprincstr,
-##                dprinc.mod_date, dprinc.attributes, dprinc.kvno,
-##                dprinc.mkvno, dprinc.policy ? dprinc.policy : "[none]",
-##                dprinc.max_renewable_life, dprinc.last_success,
-##                dprinc.last_failed, dprinc.fail_auth_count,
+class KerberosPrincipals(Base):
+   __tablename__ = 'kerberos'
+   id = Column(Integer, primary_key=True)
+   principal = Column(String(128), unique=True, nullable =False)
+   expire_time = Column(Integer, nullable=False, default = 0) # unix timestamp
+   last_pw_change = Column(Integer, nullable=False, default = 0) # unix timestamp
+   pw_expire_time = Column(Integer, nullable=False, default = 0) # unix timestamp
+   max_life = Column(Integer)
+   last_changed_by = Column(String(128), nullable = False)
+   last_changed_time = Column(Integer, nullable=False, default =0) # unix timestamp
+   attributes = Column(Integer, nullable= False, default = 0)
+   policy = Column(String(128), nullable = True)
+   max_renewable_life = Column(Integer)
+   last_auth_success = Column(Integer) # unix timestamp
+   last_auth_fail = Column(Integer) # unix timestamp
+   fail_auth_count = Column(Integer, nullable = False,default = 0)
+
+   @property
+   def expire_dt(self):
+     if self.expire_time == 0:
+       return None
+     return datetime.fromtimestamp(self.expire_time, tz=timezone.utc)
+
+   @property
+   def last_pw_change_dt(self):
+     if self.last_pw_change == 0:
+       return None
+     return datetime.fromtimestamp(self.last_pw_change, tz=timezone.utc)
+
+   @property
+   def pw_expire_time_dt(self):
+     if self.pw_expire_time == 0:
+       return None
+     return datetime.fromtimestamp(self.pw_expire_time, tz=timezone.utc)
+
+   @property
+   def last_changed_time_dt(self):
+     if self.last_changed_time == 0:
+       return None
+     return datetime.fromtimestamp(self.last_changed_time, tz=timezone.utc)
+
+
 ##     Principal (in quotes)
 ##     principal expire time (unix timestamp)
 ##     principal last password change (unix timestamp)
