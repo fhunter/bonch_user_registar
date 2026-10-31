@@ -216,7 +216,6 @@ def receive_kerberos_update():
             if result:
                 # found existing - update
                 updated = updated + 1
-                result.principal = i[0]
                 result.expire_time = int(i[1])
                 result.last_pw_change = int(i[2])
                 result.pw_expire_time = int(i[3])
@@ -229,7 +228,6 @@ def receive_kerberos_update():
                 result.last_auth_success = int(i[12])
                 result.last_auth_fail = int(i[13])
                 result.fail_auth_count = int(i[14])
-                session.add(result)
             else:
                 # not found, create
                 principal = KerberosPrincipals(
