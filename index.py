@@ -17,7 +17,7 @@ import qrcode
 import gpw
 import settings
 from secret import GITEA_KEY
-from my_db import User, Queue, Quota, Session
+from my_db import User, Queue, Quota, Session, KerberosPrincipals
 from utils import getcurrentuser, normaliseuser
 from utils import require_groups, require_users
 from utils import get_users_groups
@@ -205,66 +205,52 @@ def receive_quota_update():
 @require_users(settings.QUOTAPROCESS)
 def receive_kerberos_update():
     """ Method takes lines in csv format, separated by tabs. (kerberos dump) """
-##     Principal (in quotes)
-##     principal expire time (unix timestamp)
-##     principal last password change (unix timestamp)
-##     principal password expiration (unix timestamp)
-##     principal max life
-##     who changed principal last
-##     when last changed
-##     attributes (see below)
-##     kvno
-##     mkvno
-##     policy (or [none])
-##     max renewable life
-##     last successful auth (unix timestamp)
-##     last failed auth (unix timestamp)
-##     fail_auth_count
-#    data = request.json
-#    session = Session()
-#    if isinstance(data, list):
-#        for i in data:
-#            username = i['username']
-#            quota = int(i['quota'])
-#            used  = int(i['used'])
-#            hardquota = 0
-#            grace = 0
-#            if 'hardquota' in i:
-#                hardquota = int(i['hardquota'])
-#            if 'grace' in i:
-#                grace = int(i['grace'])
-#            result = session.query(User).filter(User.username==username).first()
-#            if result:
-#                if result.quota:
-#                    result.quota.usedspace = used
-#                    result.quota.softlimit = quota
-#                    result.quota.hardlimit = hardquota
-#                    result.quota.grace = grace
-#                else:
-#                    session.add(Quota(user_id=result.id, usedspace = used, softlimit = quota, hardlimit = hardquota, grace = grace))
-#    else:
-#        username = data['username']
-#        quota = int(data['quota'])
-#        used  = int(data['used'])
-#        hardquota = 0
-#        grace = 0
-#        if 'hardquota' in i:
-#            hardquota = int(i['hardquota'])
-#        if 'grace' in i:
-#            grace = int(i['grace'])
-#        result = session.query(User).filter(User.username==username).first()
-#        if result:
-#            if result.quota:
-#                result.quota.usedspace = used
-#                result.quota.softlimit = quota
-#                result.quota.hardlimit = hardquota
-#                result.quota.grace = grace
-#            else:
-#                session.add(Quota(user_id=result.id, usedspace = used, softlimit = quota, hardlimit = hardquota, grace = grace))
-#    session.commit()
-#    session.close()
+    added = 0
+    updated = 0
+    file_handle = request.files[list(request.files.keys())[0]].file # first filea
+    file_data = io.TextIOWrapper(file_handle, encoding='utf-8')
+    reader = csv.reader(file_data,dialect='excel-tab') # tab separators
+    with Session() as session:
+        for i in reader:
+            result = session.query(KerberosPrincipals).filter_by(principal=i[0]).first()
+            if result:
+                # found existing - update
+                updated = updated + 1
+                result.principal = i[0]
+                result.expire_time = int(i[1])
+                result.last_pw_change = int(i[2])
+                result.pw_expire_time = int(i[3])
+                result.max_life = int(i[4])
+                result.last_changed_by = i[5]
+                result.last_changed_time = int(i[6])
+                result.attributes = i[7]
+                result.policy = i[10]
+                result.max_renewable_life = int(i[11])
+                result.last_auth_success = int(i[12])
+                result.last_auth_fail = int(i[13])
+                result.fail_auth_count = int(i[14])
+                session.add(result)
+            else:
+                # not found, create
+                principal = KerberosPrincipals(
+                        principal = i[0],
+                        expire_time = int(i[1]),
+                        last_pw_change = int(i[2]),
+                        pw_expire_time = int(i[3]),
+                        max_life = int(i[4]),
+                        last_changed_by = i[5],
+                        last_changed_time = int(i[6]),
+                        attributes = i[7],
+                        policy = i[10],
+                        max_renewable_life = int(i[11]),
+                        last_auth_success = int(i[12]),
+                        last_auth_fail = int(i[13]),
+                        fail_auth_count =int(i[14]))
+                session.add(principal)
+                added = added + 1
+        session.commit()
     currentuser = getcurrentuser()
-    return dict(currentuser=currentuser)
+    return dict(currentuser=currentuser, added = added, updated=updated)
 
 #- TODO: make it so, after debug . Should be available only from 127.0.0.1
 @app.route(settings.PREFIX + '/process/newuser', method = 'POST')
