@@ -22,6 +22,8 @@ from utils import getcurrentuser, normaliseuser
 from utils import require_groups, require_users
 from utils import get_users_groups
 
+bottle.BaseRequest.MEMFILE_MAX = 4*1024*1024
+
 app = application = bottle.Bottle()
 
 
