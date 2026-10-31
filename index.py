@@ -199,6 +199,72 @@ def receive_quota_update():
     return dict(currentuser=currentuser)
 
 #- TODO: make it so, after debug . Should be available only from 127.0.0.1
+@app.route(settings.PREFIX + '/process/kerberos', method = 'POST')
+@require_users(settings.QUOTAPROCESS)
+def receive_kerberos_update():
+    """ Method takes lines in csv format, separated by tabs. (kerberos dump) """
+##     Principal (in quotes)
+##     principal expire time (unix timestamp)
+##     principal last password change (unix timestamp)
+##     principal password expiration (unix timestamp)
+##     principal max life
+##     who changed principal last
+##     when last changed
+##     attributes (see below)
+##     kvno
+##     mkvno
+##     policy (or [none])
+##     max renewable life
+##     last successful auth (unix timestamp)
+##     last failed auth (unix timestamp)
+##     fail_auth_count
+#    data = request.json
+#    session = Session()
+#    if isinstance(data, list):
+#        for i in data:
+#            username = i['username']
+#            quota = int(i['quota'])
+#            used  = int(i['used'])
+#            hardquota = 0
+#            grace = 0
+#            if 'hardquota' in i:
+#                hardquota = int(i['hardquota'])
+#            if 'grace' in i:
+#                grace = int(i['grace'])
+#            result = session.query(User).filter(User.username==username).first()
+#            if result:
+#                if result.quota:
+#                    result.quota.usedspace = used
+#                    result.quota.softlimit = quota
+#                    result.quota.hardlimit = hardquota
+#                    result.quota.grace = grace
+#                else:
+#                    session.add(Quota(user_id=result.id, usedspace = used, softlimit = quota, hardlimit = hardquota, grace = grace))
+#    else:
+#        username = data['username']
+#        quota = int(data['quota'])
+#        used  = int(data['used'])
+#        hardquota = 0
+#        grace = 0
+#        if 'hardquota' in i:
+#            hardquota = int(i['hardquota'])
+#        if 'grace' in i:
+#            grace = int(i['grace'])
+#        result = session.query(User).filter(User.username==username).first()
+#        if result:
+#            if result.quota:
+#                result.quota.usedspace = used
+#                result.quota.softlimit = quota
+#                result.quota.hardlimit = hardquota
+#                result.quota.grace = grace
+#            else:
+#                session.add(Quota(user_id=result.id, usedspace = used, softlimit = quota, hardlimit = hardquota, grace = grace))
+#    session.commit()
+#    session.close()
+    currentuser = getcurrentuser()
+    return dict(currentuser=currentuser)
+
+#- TODO: make it so, after debug . Should be available only from 127.0.0.1
 @app.route(settings.PREFIX + '/process/newuser', method = 'POST')
 @require_users(settings.QUOTAPROCESS)
 def receive_users_update():
