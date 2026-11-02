@@ -78,7 +78,17 @@
 	<td class=field_value>N/A</td></tr>
 <tr>
 	<td class=field_name>Вход выполнен:</td>
-	<td class=field_value>N/A</td>
+	<td class=field_value>
+%if kerberos:
+%if kerberos["last_auth_success"]:
+            ✅
+%else:
+            ❎
+%end
+%else:
+    N/A
+%end
+    </td>
 </tr>
 %if kerberos:
 <tr>
