@@ -502,11 +502,11 @@ def show_userinfo(username):
             "expire_time": "Действителен до",
             "last_pw_change": "Последняя смена пароля",
             "pw_expire_time": "Пароль действителен до",
-            "last_changed_by": "Последнее изменение"
+            "last_changed_by": "Последнее изменение",
             "last_changed_time": "Последнее изменение",
             "attributes": "Атрибуты",
             "policy": "Парольная политика",
-            "last_auth_success": "Последний вход"
+            "last_auth_success": "Последний вход",
             "last_auth_fail": "Не успешная попытка входа",
             "fail_auth_count": "Не успешных попыток входа"
         }
