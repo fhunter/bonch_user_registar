@@ -105,6 +105,7 @@ def getuser(username):
         join(Queue).\
         filter(User.username==username).\
         order_by(Queue.date.desc()).limit(1).all()
+    kerberos = session.query(KerberosPrincipals).filter_by(principal = (passwd[0] + "@DCTI.SUT.RU")).first()
     user["password"]=""
     user["applied"]=False
     user["queue_date"]=None
@@ -114,6 +115,19 @@ def getuser(username):
         user["applied"]=queue[0].done
         user["queue_date"]=queue[0].date
         user["queue_who"]=queue[0].resetedby
+    user["kerberos"]=None
+    if kerberos:
+        user["kerberos"]={}
+        user["kerberos"]["expire_time"]=kerberos.expire_dt
+        user["kerberos"]["last_pw_change"]=kerberos.last_pw_change_dt
+        user["kerberos"]["pw_expire_time"]=kerberos.pw_expire_time_dt
+        user["kerberos"]["last_changed_by"]=kerberos.last_changed_by
+        user["kerberos"]["last_changed_time"]=kerberos.last_changed_time_dt
+        user["kerberos"]["attributes"]=kerberos.attributes # FIXME - preplace with correct flags
+        user["kerberos"]["policy"]=kerberos.policy
+        user["kerberos"]["last_auth_success"]=kerberos.last_auth_success_dt
+        user["kerberos"]["last_auth_fail"]=kerberos.last_auth_fail_dt
+        user["kerberos"]["fail_auth_count"]=kerberos.fail_auth_count
     user["fio"] = result.fio
     user["studnumber"] = result.studnum
     user["quota"] = result.quota.softlimit
@@ -480,6 +494,9 @@ def show_userinfo(username):
     tmp = getuserqueue(username)
     changed["total"] = tmp[0]
     changed["month"] = tmp[1]
+    kerberos = None
+    if userinfo["kerberos"]:
+        kerberos = userinfo["kerberos"]
     return dict(
         username = username,
         fio = userinfo["fio"],
@@ -492,6 +509,7 @@ def show_userinfo(username):
         issued=False,
         logged_in=False,
         changed = changed,
+        kerberos = kerberos,
         password = userinfo["password"],
         applied = userinfo["applied"] )
 

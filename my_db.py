@@ -85,26 +85,37 @@ class KerberosPrincipals(Base):
    def expire_dt(self):
      if self.expire_time == 0:
        return None
-     return datetime.fromtimestamp(self.expire_time, tz=timezone.utc)
+     return datetime.datetime.fromtimestamp(self.expire_time, tz=datetime.timezone.utc)
 
    @property
    def last_pw_change_dt(self):
      if self.last_pw_change == 0:
        return None
-     return datetime.fromtimestamp(self.last_pw_change, tz=timezone.utc)
+     return datetime.datetime.fromtimestamp(self.last_pw_change, tz=datetime.timezone.utc)
 
    @property
    def pw_expire_time_dt(self):
      if self.pw_expire_time == 0:
        return None
-     return datetime.fromtimestamp(self.pw_expire_time, tz=timezone.utc)
+     return datetime.datetime.fromtimestamp(self.pw_expire_time, tz=datetime.timezone.utc)
 
    @property
    def last_changed_time_dt(self):
      if self.last_changed_time == 0:
        return None
-     return datetime.fromtimestamp(self.last_changed_time, tz=timezone.utc)
+     return datetime.datetime.fromtimestamp(self.last_changed_time, tz=datetime.timezone.utc)
+   
+   @property
+   def last_auth_success_dt(self):
+     if self.last_auth_success == 0:
+       return None
+     return datetime.datetime.fromtimestamp(self.last_auth_success, tz=datetime.timezone.utc)
 
+   @property
+   def last_auth_fail_dt(self):
+     if self.last_auth_fail == 0:
+       return None
+     return datetime.datetime.fromtimestamp(self.last_auth_fail, tz=datetime.timezone.utc)
 
 ##     Principal (in quotes)
 ##     principal expire time (unix timestamp)
