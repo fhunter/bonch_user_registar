@@ -495,8 +495,21 @@ def show_userinfo(username):
     changed["total"] = tmp[0]
     changed["month"] = tmp[1]
     kerberos = None
+    kerberos_names = {}
     if userinfo["kerberos"]:
         kerberos = userinfo["kerberos"]
+        kerberos_names = { 
+            "expire_time": "Действителен до",
+            "last_pw_change": "Последняя смена пароля",
+            "pw_expire_time": "Пароль действителен до",
+            "last_changed_by": "Последнее изменение"
+            "last_changed_time": "Последнее изменение",
+            "attributes": "Атрибуты",
+            "policy": "Парольная политика",
+            "last_auth_success": "Последний вход"
+            "last_auth_fail": "Не успешная попытка входа",
+            "fail_auth_count": "Не успешных попыток входа"
+        }
     return dict(
         username = username,
         fio = userinfo["fio"],
@@ -510,6 +523,7 @@ def show_userinfo(username):
         logged_in=False,
         changed = changed,
         kerberos = kerberos,
+        kerberos_names = kerberos_names,
         password = userinfo["password"],
         applied = userinfo["applied"] )
 

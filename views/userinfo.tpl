@@ -96,7 +96,7 @@
     <td class=field_value>
         <table>
 %for i in list(kerberos.keys()):
-           <tr><td class=field_name>{{i}} :</td><td class=field_value>{{kerberos[i]}}</td></tr>
+           <tr><td class=field_name>{{kerberos_names[i]}} :</td><td class=field_value>{{kerberos[i]}}</td></tr>
 %end
         </table>
     </td>
