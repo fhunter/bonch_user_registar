@@ -117,6 +117,50 @@ class KerberosPrincipals(Base):
        return None
      return datetime.datetime.fromtimestamp(self.last_auth_fail, tz=datetime.timezone.utc)
 
+   @property
+   def attributes_ls(self):
+     if self.attributes == 0:
+       return []
+     flags = [
+       "DISALLOW_POSTDATED",
+       "DISALLOW_FORWARDABLE",
+       "DISALLOW_TGT_BASED",
+       "DISALLOW_RENEWABLE",
+       "DISALLOW_PROXIABLE",
+       "DISALLOW_DUP_SKEY",
+       "DISALLOW_ALL_TIX",
+       "REQUIRES_PRE_AUTH",
+       "REQUIRES_HW_AUTH",
+       "REQUIRES_PWCHANGE",
+       "",
+       "",
+       "DISALLOW_SVR",
+       "PWCHANGE_SERVICE",
+       "SUPPORT_DESMD5",
+       "NEW_PRINC",
+       "",
+       "",
+       "",
+       "",
+       "OK_AS_DELEGATE",
+       "OK_TO_AUTH_AS_DELEGATE",
+       "NO_AUTH_DATA_REQUIRED",
+       "LOCKDOWN_KEYS",
+       "",
+       "",
+       "",
+       "",
+       "",
+       "",
+       "",
+       ""]
+     result = []
+     for i in range(32):
+         if self.attributes & (1<<i):
+             result.append(flags[i])
+     return result
+
+
 ##     Principal (in quotes)
 ##     principal expire time (unix timestamp)
 ##     principal last password change (unix timestamp)

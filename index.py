@@ -123,7 +123,7 @@ def getuser(username):
         user["kerberos"]["pw_expire_time"]=kerberos.pw_expire_time_dt
         user["kerberos"]["last_changed_by"]=kerberos.last_changed_by
         user["kerberos"]["last_changed_time"]=kerberos.last_changed_time_dt
-        user["kerberos"]["attributes"]=kerberos.attributes # FIXME - preplace with correct flags
+        user["kerberos"]["attributes"]=" ".join(kerberos.attributes_ls)
         user["kerberos"]["policy"]=kerberos.policy
         user["kerberos"]["last_auth_success"]=kerberos.last_auth_success_dt
         user["kerberos"]["last_auth_fail"]=kerberos.last_auth_fail_dt
